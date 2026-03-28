@@ -9,11 +9,13 @@ import com.dentapp.app.ui.home.HomeDoctorScreen
 import com.dentapp.app.ui.home.HomePatientScreen
 import com.dentapp.app.ui.onboarding.OnboardingDoctorScreen
 import com.dentapp.app.ui.onboarding.OnboardingPatientScreen
+import com.dentapp.app.ui.splash.SplashScreen
 import com.dentapp.app.utils.TokenStore
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 
 object Routes {
+    const val SPLASH              = "splash"
     const val LOGIN               = "login"
     const val REGISTER            = "register"
     const val ONBOARDING_PATIENT  = "onboarding_patient"
@@ -27,19 +29,27 @@ fun DentAppNavGraph(
     navController: NavHostController,
     tokenStore: TokenStore,
 ) {
-    // Determinar pantalla inicial según si hay sesión activa
-    val startDestination = remember {
-        val token = runBlocking { tokenStore.token.firstOrNull() }
-        val role  = runBlocking { tokenStore.role.firstOrNull() }
-        when {
-            !token.isNullOrBlank() && role == "doctor"  -> Routes.HOME_DOCTOR
-            !token.isNullOrBlank() && role == "patient" -> Routes.HOME_PATIENT
-            else -> Routes.LOGIN
+    NavHost(navController = navController, startDestination = Routes.SPLASH) {
+
+        // ── Splash ────────────────────────────────────────────────────────────
+        composable(Routes.SPLASH) {
+            SplashScreen(
+                onFinished = {
+                    val token = runBlocking { tokenStore.token.firstOrNull() }
+                    val role  = runBlocking { tokenStore.role.firstOrNull() }
+                    val dest  = when {
+                        !token.isNullOrBlank() && role == "doctor"  -> Routes.HOME_DOCTOR
+                        !token.isNullOrBlank() && role == "patient" -> Routes.HOME_PATIENT
+                        else -> Routes.LOGIN
+                    }
+                    navController.navigate(dest) {
+                        popUpTo(Routes.SPLASH) { inclusive = true }
+                    }
+                }
+            )
         }
-    }
 
-    NavHost(navController = navController, startDestination = startDestination) {
-
+        // ── Auth ──────────────────────────────────────────────────────────────
         composable(Routes.LOGIN) {
             LoginScreen(
                 onLoginSuccess = { role ->
@@ -60,6 +70,7 @@ fun DentAppNavGraph(
             )
         }
 
+        // ── Onboarding ────────────────────────────────────────────────────────
         composable(Routes.ONBOARDING_PATIENT) {
             OnboardingPatientScreen(
                 onSuccess = {
@@ -82,6 +93,7 @@ fun DentAppNavGraph(
             )
         }
 
+        // ── Home ──────────────────────────────────────────────────────────────
         composable(Routes.HOME_PATIENT) {
             HomePatientScreen(
                 onLogout = {
