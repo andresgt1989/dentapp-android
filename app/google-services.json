@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "396056622832",
+    "project_id": "dentapp-24241",
+    "storage_bucket": "dentapp-24241.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:396056622832:android:ed259f0372400907f67435",
+        "android_client_info": {
+          "package_name": "com.dentapp.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCuW-oT71jdFTXU_HSvSWPMXMZ5c8vv7o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
