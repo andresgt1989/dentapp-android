@@ -26,7 +26,13 @@ class AuthRepository @Inject constructor(
                 tokenStore.save(body.token, body.user.role, body.user.id)
                 Result.Success(body)
             } else {
-                Result.Error("Credenciales incorrectas")
+                val message = when (response.code()) {
+                    401  -> "Email o contraseña incorrectos"
+                    404  -> "Usuario no encontrado"
+                    429  -> "Demasiados intentos. Espera unos minutos"
+                    else -> "Error del servidor (${response.code()}). Intenta más tarde"
+                }
+                Result.Error(message)
             }
         } catch (e: Exception) {
             Result.Error("Sin conexión. Verifica tu internet.")

@@ -30,7 +30,7 @@ class AuthViewModel @Inject constructor(
         if (!validate(email, password)) return
         viewModelScope.launch {
             _state.value = AuthUiState(isLoading = true)
-            when (val r = repo.login(email.trim(), password)) {
+            when (val r = repo.login(email.trim(), password.trim())) {
                 is Result.Success -> _state.value = AuthUiState(success = true, role = r.data.user.role)
                 is Result.Error   -> _state.value = AuthUiState(error = r.message)
             }
@@ -76,11 +76,12 @@ class AuthViewModel @Inject constructor(
     fun clearError() { _state.value = _state.value.copy(error = null) }
 
     private fun validate(email: String, password: String): Boolean {
-        if (email.isBlank() || !email.contains("@")) {
+        val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
+        if (email.isBlank() || !emailRegex.matches(email.trim())) {
             _state.value = AuthUiState(error = "Email inválido")
             return false
         }
-        if (password.length < 6) {
+        if (password.trim().length < 6) {
             _state.value = AuthUiState(error = "La contraseña debe tener al menos 6 caracteres")
             return false
         }
