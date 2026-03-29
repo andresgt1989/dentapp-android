@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dentapp.app.ui.theme.*
 
+@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeDoctorScreen(onLogout: () -> Unit) {
     Scaffold(
@@ -67,6 +69,8 @@ fun HomeDoctorScreen(onLogout: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePatientScreen(onLogout: () -> Unit) {
     Scaffold(
@@ -119,6 +123,8 @@ fun HomePatientScreen(onLogout: () -> Unit) {
 
 // ── Componentes internos ─────────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WelcomeCard(title: String, subtitle: String, icon: String) {
     Surface(shape = RoundedCornerShape(20.dp), color = DentBlue,
@@ -134,6 +140,8 @@ private fun WelcomeCard(title: String, subtitle: String, icon: String) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StatCard(label: String, value: String,
                      icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -147,6 +155,8 @@ private fun StatCard(label: String, value: String,
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AppointmentCard(patientName: String, time: String,
                              specialty: String, status: String) {
@@ -168,6 +178,8 @@ private fun AppointmentCard(patientName: String, time: String,
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StatusChip(status: String) {
     val (label, color) = when (status) {
@@ -182,6 +194,8 @@ private fun StatusChip(status: String) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DentButton_Home(text: String,
                              icon: androidx.compose.ui.graphics.vector.ImageVector) {
@@ -196,6 +210,8 @@ private fun DentButton_Home(text: String,
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DoctorBottomBar() {
     NavigationBar(containerColor = White) {
@@ -210,6 +226,8 @@ private fun DoctorBottomBar() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PatientBottomBar() {
     NavigationBar(containerColor = White) {

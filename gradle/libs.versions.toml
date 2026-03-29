@@ -18,6 +18,9 @@ coil = "2.7.0"
 googleServices = "4.4.2"
 stripeAndroid = "20.52.0"
 splashscreen = "1.0.1"
+mapsCompose = "4.4.1"
+playServicesLocation = "21.3.0"
+playServicesMaps = "19.0.0"
 
 [libraries]
 # Core
@@ -63,6 +66,11 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 
 # Stripe
 stripe-android = { group = "com.stripe", name = "stripe-android", version.ref = "stripeAndroid" }
+
+# Maps & Location
+maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "mapsCompose" }
+play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -20,6 +20,7 @@ android {
         versionName = "1.0.0"
 
         buildConfigField("String", "API_BASE_URL", "\"https://api.dentapp.site/\"")
+        manifestPlaceholders["MAPS_API_KEY"] = "TU_GOOGLE_MAPS_API_KEY"
     }
 
     buildTypes {
@@ -91,6 +92,11 @@ dependencies {
 
     // Stripe
     implementation(libs.stripe.android)
+
+    // Maps & Location
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.maps)
+    implementation(libs.play.services.location)
 }
 
 kapt {
