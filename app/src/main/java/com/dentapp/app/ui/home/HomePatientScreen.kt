@@ -1,5 +1,6 @@
 package com.dentapp.app.ui.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -35,6 +36,8 @@ import com.dentapp.app.ui.theme.*
 fun HomePatientScreen(
     onLogout: () -> Unit,
     onOpenAiManager: () -> Unit,
+    onOpenExpediente: () -> Unit = {},
+    onOpenBooking: (doctorId: String, doctorName: String) -> Unit = { _, _ -> },
     viewModel: HomePatientViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -101,12 +104,14 @@ fun HomePatientScreen(
                 state = state,
                 onOpenAiManager = onOpenAiManager,
                 onSearchDoctors = { selectedTab = 1 },
+                onSendUrgencia = { desc -> viewModel.sendUrgencia(desc) },
                 modifier = Modifier.padding(padding),
             )
             1 -> DoctoresTab(
                 doctors = state.doctors,
                 isLoading = state.isLoadingDoctors,
                 onRefresh = { viewModel.loadDoctors() },
+                onOpenBooking = onOpenBooking,
                 modifier = Modifier.padding(padding),
             )
             2 -> CitasTab(
@@ -119,6 +124,7 @@ fun HomePatientScreen(
                 patientName = state.patientName,
                 email = state.email,
                 onLogout = onLogout,
+                onOpenExpediente = onOpenExpediente,
                 modifier = Modifier.padding(padding),
             )
         }
@@ -134,8 +140,47 @@ private fun InicioTab(
     state: HomePatientState,
     onOpenAiManager: () -> Unit,
     onSearchDoctors: () -> Unit,
+    onSendUrgencia: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showUrgenciaDialog by remember { mutableStateOf(false) }
+    var urgenciaDesc by remember { mutableStateOf("") }
+
+    if (showUrgenciaDialog) {
+        AlertDialog(
+            onDismissRequest = { showUrgenciaDialog = false },
+            icon = { Text("🚨", style = MaterialTheme.typography.displaySmall) },
+            title = { Text("¿Es una urgencia?") },
+            text = {
+                Column {
+                    Text("Notificaremos a doctores disponibles. Describe brevemente:")
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = urgenciaDesc,
+                        onValueChange = { urgenciaDesc = it },
+                        label = { Text("Ej: Dolor fuerte en molar, sangrado...") },
+                        maxLines = 3,
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onSendUrgencia(urgenciaDesc)
+                        showUrgenciaDialog = false
+                        urgenciaDesc = ""
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
+                ) {
+                    Text("Enviar urgencia")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUrgenciaDialog = false }) { Text("Cancelar") }
+            },
+        )
+    }
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -198,6 +243,38 @@ private fun InicioTab(
                             style = MaterialTheme.typography.bodySmall, color = DentTextSecond)
                     }
                     Icon(Icons.Outlined.ChevronRight, null, tint = Primary)
+                }
+            }
+        }
+
+        // Urgencia
+        item {
+            Card(
+                onClick = { showUrgenciaDialog = true },
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                border = BorderStroke(2.dp, Color(0xFFD32F2F)),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("🚨", style = MaterialTheme.typography.titleLarge)
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            "URGENCIA DENTAL",
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFD32F2F),
+                        )
+                        Text(
+                            "Notifica a doctores disponibles ahora",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = DentTextSecond,
+                        )
+                    }
+                    Icon(Icons.Outlined.ChevronRight, null, tint = Color(0xFFD32F2F))
                 }
             }
         }
@@ -265,6 +342,7 @@ private fun DoctoresTab(
     doctors: List<DoctorDto>,
     isLoading: Boolean,
     onRefresh: () -> Unit,
+    onOpenBooking: (doctorId: String, doctorName: String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -301,7 +379,7 @@ private fun DoctoresTab(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 items(doctors, key = { it.id }) { doctor ->
-                    DoctorCard(doctor)
+                    DoctorCard(doctor, onClick = { onOpenBooking(doctor.id, doctor.fullName) })
                 }
                 item { Spacer(Modifier.height(8.dp)) }
             }
@@ -366,6 +444,7 @@ private fun PerfilTab(
     patientName: String,
     email: String,
     onLogout: () -> Unit,
+    onOpenExpediente: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -413,6 +492,43 @@ private fun PerfilTab(
         // Opciones
         item {
             ProfileMenuItem(Icons.Outlined.Person, "Mis datos", "Ver y editar perfil")
+        }
+        item {
+            Card(
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = White),
+                elevation = CardDefaults.cardElevation(1.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onOpenExpediente),
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("🦷", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.width(14.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            "Mi Expediente Dental",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = DentTextPrimary,
+                        )
+                        Text(
+                            "Historial de procedimientos",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = DentTextSecond,
+                        )
+                    }
+                    Icon(
+                        Icons.Outlined.ChevronRight,
+                        null,
+                        tint = DentTextSecond,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
         }
         item {
             ProfileMenuItem(Icons.Outlined.HealthAndSafety, "Historial médico", "Condiciones y alergias")

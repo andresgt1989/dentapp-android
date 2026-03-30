@@ -87,4 +87,22 @@ interface ApiService {
     // ── Account ───────────────────────────────────────────────────────────────
     @DELETE("api/users/me")
     suspend fun deleteAccount(): Response<Unit>
+
+    // ── Consultation Types ────────────────────────────────────────────────────
+    @GET("api/consultas/tipos")
+    suspend fun getConsultationTypes(): Response<ConsultationTypesResponse>
+
+    @POST("api/consultas/video")
+    suspend fun createVideoConsulta(@Body request: CreateVideoConsultaRequest): Response<VideoConsultaResponse>
+
+    @POST("api/consultas/urgencia")
+    suspend fun sendUrgencia(@Body request: UrgenciaRequest): Response<UrgenciaResponse>
+
+    // ── Dental Records / Expediente ───────────────────────────────────────────
+    @GET("api/expediente")
+    suspend fun getDentalRecords(): Response<DentalRecordsResponse>
+
+    // ── AI Photo Analysis ─────────────────────────────────────────────────────
+    @POST("api/ai/analyze-photo")
+    suspend fun analyzePhoto(@Body request: AnalyzePhotoRequest): Response<AnalyzePhotoResponse>
 }

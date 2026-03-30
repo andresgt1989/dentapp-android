@@ -149,3 +149,91 @@ data class MessageResponse(val message: String)
 
 @Serializable
 data class ErrorResponse(val error: String)
+
+// ── Consultation Types ────────────────────────────────────────────────────────
+
+@Serializable
+data class ConsultationTypeDto(
+    val id: String,
+    val nombre: String,
+    val descripcion: String? = null,
+    val modalidad: String,  // "video" | "presencial" | "chat"
+    @SerialName("duracion_min") val duracionMin: Int,
+    @SerialName("precio_centavos") val precioCentavos: Int,
+)
+
+@Serializable
+data class ConsultationTypesResponse(val types: List<ConsultationTypeDto>)
+
+@Serializable
+data class CreateVideoConsultaRequest(
+    val doctorId: String,
+    val consultationTypeId: String,
+    val fecha: String,
+    val hora: String,
+)
+
+@Serializable
+data class VideoConsultaResponse(
+    val reservaId: String,
+    @SerialName("clientSecret") val clientSecret: String,
+    val roomUrl: String? = null,
+    val roomName: String? = null,
+    val precio: Double,
+)
+
+// ── Dental Record / Expediente ────────────────────────────────────────────────
+
+@Serializable
+data class DentalRecordDto(
+    val id: String,
+    @SerialName("patient_id") val patientId: String,
+    val fecha: String,
+    val procedimiento: String,
+    val descripcion: String? = null,
+    val diente: String? = null,
+    @SerialName("material_usado") val materialUsado: String? = null,
+    val costo: Double? = null,
+    @SerialName("doctor_name") val doctorName: String? = null,
+    @SerialName("clinica_nombre") val clinicaNombre: String? = null,
+)
+
+@Serializable
+data class DentalRecordsResponse(val records: List<DentalRecordDto>)
+
+// ── AI Photo Analysis ─────────────────────────────────────────────────────────
+
+@Serializable
+data class AnalyzePhotoRequest(
+    val imageBase64: String,
+    val mimeType: String = "image/jpeg",
+)
+
+@Serializable
+data class AnalyzePhotoResponse(
+    val analysis: String,
+    val disclaimer: Boolean = true,
+)
+
+// ── Urgencia ──────────────────────────────────────────────────────────────────
+
+@Serializable
+data class UrgenciaRequest(
+    val descripcion: String,
+    val lat: Double? = null,
+    val lng: Double? = null,
+)
+
+@Serializable
+data class UrgenciaResponse(
+    val notificados: Int,
+    @SerialName("consultation_id") val consultationId: String? = null,
+)
+
+// ── Loyalty ───────────────────────────────────────────────────────────────────
+
+@Serializable
+data class LoyaltyStatusResponse(
+    val balance: Int,
+    val nivel: String,
+)
