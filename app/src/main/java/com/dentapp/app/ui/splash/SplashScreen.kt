@@ -1,42 +1,39 @@
 package com.dentapp.app.ui.splash
 
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import com.dentapp.app.R
-import com.dentapp.app.ui.theme.DentBlue
-import com.dentapp.app.ui.theme.DentBlueDark
-import androidx.compose.material3.Text
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.dentapp.app.ui.theme.White
+import com.dentapp.app.ui.theme.OnPrimary
+import com.dentapp.app.ui.theme.Primary
+import com.dentapp.app.ui.theme.PrimaryDark
 import kotlinx.coroutines.delay
 
+/**
+ * Animated splash screen shown at startup.
+ * [onFinished] receives [hasToken] — callers should check DataStore
+ * to determine whether a valid JWT exists before invoking this lambda.
+ */
 @Composable
 fun SplashScreen(onFinished: () -> Unit) {
 
-    // Animación de escala: 0.6 → 1.0
-    val scale = remember { Animatable(0.6f) }
-    // Animación de opacidad: 0 → 1
-    val alpha = remember { Animatable(0f) }
-    // Animación del texto: sube desde abajo
-    val textOffset = remember { Animatable(40f) }
-    val textAlpha  = remember { Animatable(0f) }
+    val scale       = remember { Animatable(0.6f) }
+    val alpha       = remember { Animatable(0f) }
+    val textOffset  = remember { Animatable(40f) }
+    val textAlpha   = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
-        // Logo aparece con bounce
         scale.animateTo(
             targetValue = 1f,
             animationSpec = spring(
@@ -45,11 +42,8 @@ fun SplashScreen(onFinished: () -> Unit) {
             )
         )
         alpha.animateTo(1f, tween(400))
-
-        // Texto sube
         textOffset.animateTo(0f, tween(400, easing = FastOutSlowInEasing))
         textAlpha.animateTo(1f, tween(400))
-
         delay(1000)
         onFinished()
     }
@@ -59,7 +53,7 @@ fun SplashScreen(onFinished: () -> Unit) {
             .fillMaxSize()
             .background(
                 Brush.linearGradient(
-                    colors = listOf(DentBlue, DentBlueDark),
+                    colors = listOf(Primary, PrimaryDark),
                     start  = androidx.compose.ui.geometry.Offset(0f, 0f),
                     end    = androidx.compose.ui.geometry.Offset(1000f, 1000f),
                 )
@@ -70,35 +64,32 @@ fun SplashScreen(onFinished: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            // Logo
-            Image(
-                painter = painterResource(R.drawable.ic_logo),
-                contentDescription = "DentApp logo",
+            // Logo emoji — replace with Image(painterResource(R.drawable.ic_logo)) when asset is ready
+            Text(
+                text = "\uD83E\uDDB7",   // tooth emoji
+                fontSize = 80.sp,
                 modifier = Modifier
-                    .size(120.dp)
                     .scale(scale.value)
                     .alpha(alpha.value),
             )
 
             Spacer(Modifier.height(24.dp))
 
-            // Nombre app
             Text(
                 text = "DentApp",
-                color = White,
+                color = OnPrimary,
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp,
-                modifier = Modifier
-                    .graphicsLayer {
-                        translationY = textOffset.value
-                        this.alpha   = textAlpha.value
-                    },
+                modifier = Modifier.graphicsLayer {
+                    translationY = textOffset.value
+                    this.alpha   = textAlpha.value
+                },
             )
 
             Text(
-                text = "Tu clínica dental, siempre contigo",
-                color = White.copy(alpha = 0.75f),
+                text = "Tu salud dental, siempre bajo control",
+                color = OnPrimary.copy(alpha = 0.75f),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
                 letterSpacing = 0.5.sp,
@@ -111,10 +102,9 @@ fun SplashScreen(onFinished: () -> Unit) {
             )
         }
 
-        // Versión abajo
         Text(
             text = "v1.0.0",
-            color = White.copy(alpha = 0.4f),
+            color = OnPrimary.copy(alpha = 0.4f),
             fontSize = 12.sp,
             modifier = Modifier
                 .align(Alignment.BottomCenter)

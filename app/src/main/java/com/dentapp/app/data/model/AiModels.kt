@@ -49,6 +49,12 @@ data class PerfilSalud(
 data class AiHistoryResponse(val messages: List<AiMessage>)
 
 @Serializable
+data class AiStartResponse(
+    @SerialName("conversation_id") val conversationId: String,
+    val message: String = "",
+)
+
+@Serializable
 data class AiMessage(
     val role: String,   // "user" | "assistant"
     val content: String,

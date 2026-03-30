@@ -69,4 +69,22 @@ interface ApiService {
 
     @GET("api/ai/history")
     suspend fun aiHistory(): Response<AiHistoryResponse>
+
+    @POST("api/ai/start")
+    suspend fun startConversation(): Response<AiStartResponse>
+
+    // ── Subscriptions ─────────────────────────────────────────────────────────
+    @GET("api/subscriptions/plans")
+    suspend fun getPlans(): Response<PlansResponse>
+
+    @GET("api/subscriptions/status")
+    suspend fun getSubscriptionStatus(): Response<SubscriptionStatusResponse>
+
+    // ── Admin ─────────────────────────────────────────────────────────────────
+    @GET("api/admin/stats")
+    suspend fun getAdminStats(): Response<AdminStatsResponse>
+
+    // ── Account ───────────────────────────────────────────────────────────────
+    @DELETE("api/users/me")
+    suspend fun deleteAccount(): Response<Unit>
 }

@@ -23,6 +23,15 @@ android {
         manifestPlaceholders["MAPS_API_KEY"] = "TU_GOOGLE_MAPS_API_KEY"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("../keystore/dentapp-release.keystore")
+            storePassword = System.getenv("STORE_PASSWORD") ?: "dentapp2024"
+            keyAlias = System.getenv("KEY_ALIAS") ?: "dentapp"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: "dentapp2024"
+        }
+    }
+
     buildTypes {
         debug {
             isDebuggable = true
@@ -32,6 +41,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
             buildConfigField("String", "API_BASE_URL", "\"https://api.dentapp.site/\"")
         }
     }
@@ -102,6 +112,12 @@ dependencies {
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
     implementation(libs.play.services.location)
+
+    // Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+
+    // Gson (for SubscriptionModels @SerializedName)
+    implementation("com.google.code.gson:gson:2.11.0")
 }
 
 kapt {

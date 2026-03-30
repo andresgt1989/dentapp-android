@@ -12,9 +12,9 @@ class AiRepository @Inject constructor(private val api: ApiService) {
         return try {
             val res = api.aiChat(AiChatRequest(message))
             if (res.isSuccessful) Result.Success(res.body()!!)
-            else Result.Error(res.errorBody()?.string() ?: "Error ${res.code()}")
+            else Result.Error("Error al enviar mensaje. Intenta de nuevo.")
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Sin conexión")
+            Result.Error("Sin conexión. Verifica tu internet.")
         }
     }
 
@@ -22,9 +22,9 @@ class AiRepository @Inject constructor(private val api: ApiService) {
         return try {
             val res = api.aiContext()
             if (res.isSuccessful) Result.Success(res.body()!!)
-            else Result.Error("Sin procedimiento activo")
+            else Result.Error("Error al cargar datos. Intenta de nuevo.")
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Sin conexión")
+            Result.Error("Sin conexión. Verifica tu internet.")
         }
     }
 
@@ -32,9 +32,19 @@ class AiRepository @Inject constructor(private val api: ApiService) {
         return try {
             val res = api.aiHistory()
             if (res.isSuccessful) Result.Success(res.body()!!)
-            else Result.Error("Error cargando historial")
+            else Result.Error("Error al cargar datos. Intenta de nuevo.")
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Sin conexión")
+            Result.Error("Sin conexión. Verifica tu internet.")
+        }
+    }
+
+    suspend fun startConversation(): Result<AiStartResponse> {
+        return try {
+            val res = api.startConversation()
+            if (res.isSuccessful) Result.Success(res.body()!!)
+            else Result.Error("Error al cargar datos. Intenta de nuevo.")
+        } catch (e: Exception) {
+            Result.Error("Sin conexión. Verifica tu internet.")
         }
     }
 }

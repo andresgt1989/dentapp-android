@@ -1,5 +1,6 @@
 package com.dentapp.app.ui.ai
 
+import android.content.Context
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -14,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -29,12 +31,28 @@ private val BubbleUser   = Color(0xFF2563EB)   // azul — mensajes usuario
 private val BubbleAiText = Color(0xFF1E3A5F)
 private val SurfaceCard  = Color(0xFFF8FAFC)
 
+private const val PREFS_AI = "ai_prefs"
+private const val KEY_DISCLAIMER_ACCEPTED = "disclaimer_accepted"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiManagerScreen(
     onBack: () -> Unit,
     viewModel: AiManagerViewModel = hiltViewModel(),
 ) {
+    val context   = LocalContext.current
+    val prefs     = remember { context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE) }
+    var showDisclaimer by remember {
+        mutableStateOf(!prefs.getBoolean(KEY_DISCLAIMER_ACCEPTED, false))
+    }
+
+    if (showDisclaimer) {
+        MedicalDisclaimerDialog(onAccept = {
+            prefs.edit().putBoolean(KEY_DISCLAIMER_ACCEPTED, true).apply()
+            showDisclaimer = false
+        })
+    }
+
     val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     var inputText by remember { mutableStateOf("") }
