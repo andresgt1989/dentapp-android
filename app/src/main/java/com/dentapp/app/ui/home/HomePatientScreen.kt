@@ -602,8 +602,9 @@ private fun QuickActionCard(
 }
 
 @Composable
-private fun DoctorCard(doctor: DoctorDto) {
+private fun DoctorCard(doctor: DoctorDto, onClick: () -> Unit = {}) {
     Card(
+        onClick = onClick,
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = White),
         elevation = CardDefaults.cardElevation(1.dp),

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dentapp.app.data.model.AppointmentDto
 import com.dentapp.app.data.model.DoctorDto
+import com.dentapp.app.data.model.UrgenciaRequest
 import com.dentapp.app.data.repository.DoctorRepository
 import com.dentapp.app.data.repository.Result
 import com.dentapp.app.data.api.ApiService
@@ -81,6 +82,20 @@ class HomePatientViewModel @Inject constructor(
                     }
                 }
             } catch (_: Exception) {}
+        }
+    }
+
+    fun sendUrgencia(descripcion: String) {
+        viewModelScope.launch {
+            try {
+                val r = api.sendUrgencia(UrgenciaRequest(descripcion = descripcion))
+                if (r.isSuccessful) {
+                    val n = r.body()?.notificados ?: 0
+                    _state.update { it.copy(error = "✅ $n doctores notificados. Espera su respuesta.") }
+                }
+            } catch (e: Exception) {
+                _state.update { it.copy(error = "Error al enviar urgencia") }
+            }
         }
     }
 
