@@ -8,21 +8,33 @@ import javax.inject.Singleton
 @Singleton
 class AiRepository @Inject constructor(private val api: ApiService) {
 
-    suspend fun chat(message: String): Result<AiChatResponse> = runCatching {
-        val res = api.aiChat(AiChatRequest(message))
-        if (res.isSuccessful) res.body()!!
-        else throw Exception(res.errorBody()?.string() ?: "Error ${res.code()}")
+    suspend fun chat(message: String): Result<AiChatResponse> {
+        return try {
+            val res = api.aiChat(AiChatRequest(message))
+            if (res.isSuccessful) Result.Success(res.body()!!)
+            else Result.Error(res.errorBody()?.string() ?: "Error ${res.code()}")
+        } catch (e: Exception) {
+            Result.Error(e.message ?: "Sin conexión")
+        }
     }
 
-    suspend fun getContext(): Result<AiContextResponse> = runCatching {
-        val res = api.aiContext()
-        if (res.isSuccessful) res.body()!!
-        else throw Exception("Sin procedimiento activo")
+    suspend fun getContext(): Result<AiContextResponse> {
+        return try {
+            val res = api.aiContext()
+            if (res.isSuccessful) Result.Success(res.body()!!)
+            else Result.Error("Sin procedimiento activo")
+        } catch (e: Exception) {
+            Result.Error(e.message ?: "Sin conexión")
+        }
     }
 
-    suspend fun getHistory(): Result<AiHistoryResponse> = runCatching {
-        val res = api.aiHistory()
-        if (res.isSuccessful) res.body()!!
-        else throw Exception("Error cargando historial")
+    suspend fun getHistory(): Result<AiHistoryResponse> {
+        return try {
+            val res = api.aiHistory()
+            if (res.isSuccessful) Result.Success(res.body()!!)
+            else Result.Error("Error cargando historial")
+        } catch (e: Exception) {
+            Result.Error(e.message ?: "Sin conexión")
+        }
     }
 }
