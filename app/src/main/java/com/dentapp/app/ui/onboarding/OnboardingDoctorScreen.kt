@@ -26,6 +26,7 @@ private val SPECIALTIES = listOf(
     "Implantología", "Estética Dental",
 )
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingDoctorScreen(
     onSuccess: () -> Unit,

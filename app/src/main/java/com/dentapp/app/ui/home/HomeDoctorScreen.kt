@@ -71,6 +71,7 @@ fun HomeDoctorScreen(onLogout: () -> Unit) {
 }
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun HomePatientScreen(onLogout: () -> Unit, onOpenAiManager: () -> Unit = {}) {
     Scaffold(
         topBar = {
