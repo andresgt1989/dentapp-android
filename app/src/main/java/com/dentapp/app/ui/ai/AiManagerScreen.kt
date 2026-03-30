@@ -56,6 +56,20 @@ fun AiManagerScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     var inputText by remember { mutableStateOf("") }
+    // Guard against duplicate sends (race between button tap and keyboard IME action)
+    var localSending by remember { mutableStateOf(false) }
+
+    LaunchedEffect(state.isSending) {
+        if (!state.isSending) localSending = false
+    }
+
+    val handleSend: () -> Unit = {
+        if (!localSending && inputText.isNotBlank()) {
+            localSending = true
+            viewModel.sendMessage(inputText.trim())
+            inputText = ""
+        }
+    }
 
     // Auto-scroll al último mensaje
     LaunchedEffect(state.messages.size) {
@@ -90,7 +104,7 @@ fun AiManagerScreen(
                             Text("🦷", fontSize = 18.sp)
                         }
                         Column {
-                            Text("AI Manager Dental", style = MaterialTheme.typography.titleMedium, color = White, fontWeight = FontWeight.Bold)
+                            Text("DentApp Recovery AI™", style = MaterialTheme.typography.titleMedium, color = White, fontWeight = FontWeight.Bold)
                             state.context?.let {
                                 Text("Día ${it.diasPostCirugia} • Dra. Andreá Oris",
                                     style = MaterialTheme.typography.labelSmall,
@@ -108,17 +122,24 @@ fun AiManagerScreen(
             )
         },
         bottomBar = {
-            ChatInput(
-                text = inputText,
-                onTextChange = { inputText = it },
-                isSending = state.isSending,
-                onSend = {
-                    if (inputText.isNotBlank()) {
-                        viewModel.sendMessage(inputText.trim())
-                        inputText = ""
-                    }
-                },
-            )
+            Column {
+                // Quick replies — always visible above input
+                QuickReplies(
+                    isSending = localSending || state.isSending,
+                    onSelect = { msg ->
+                        if (!localSending) {
+                            localSending = true
+                            viewModel.sendMessage(msg)
+                        }
+                    },
+                )
+                ChatInput(
+                    text = inputText,
+                    onTextChange = { inputText = it },
+                    isSending = localSending || state.isSending,
+                    onSend = handleSend,
+                )
+            }
         },
         containerColor = Color(0xFFF1F5F9),
     ) { padding ->
@@ -295,7 +316,7 @@ private fun EmptyState() {
     ) {
         Text("🦷", fontSize = 48.sp)
         Spacer(Modifier.height(12.dp))
-        Text("Hola, soy tu AI Manager Dental", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text("Hola, soy DentApp Recovery AI™", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
         Text("Tengo acceso a tu historial clínico, medicación e indicaciones de la Dra. Andreá. Pregúntame lo que necesites.",
             style = MaterialTheme.typography.bodyMedium,
@@ -314,6 +335,41 @@ private fun EmptyState() {
                 label = { Text(sugerencia, style = MaterialTheme.typography.labelMedium) },
                 modifier = Modifier.padding(vertical = 3.dp),
                 colors = SuggestionChipDefaults.suggestionChipColors(containerColor = Color.White),
+            )
+        }
+    }
+}
+
+// ── Quick replies ─────────────────────────────────────────────────────────────
+@Composable
+private fun QuickReplies(
+    isSending: Boolean,
+    onSelect: (String) -> Unit,
+) {
+    val chips = listOf("Me duele 🦷", "Hay sangrado", "¿Es normal?", "Olvidé medicación", "¿Puedo comer?")
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .background(Color.White)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        chips.forEach { chip ->
+            FilterChip(
+                selected = false,
+                onClick = { if (!isSending) onSelect(chip) },
+                label = { Text(chip, style = MaterialTheme.typography.labelSmall) },
+                enabled = !isSending,
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = Color(0xFFEFF6FF),
+                    labelColor = DentBlue,
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = false,
+                    borderColor = DentBlue.copy(alpha = 0.3f),
+                ),
             )
         }
     }

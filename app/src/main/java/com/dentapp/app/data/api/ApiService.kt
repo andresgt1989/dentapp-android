@@ -13,6 +13,9 @@ interface ApiService {
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
 
+    @POST("api/auth/google")
+    suspend fun googleAuth(@Body request: GoogleAuthRequest): Response<AuthResponse>
+
     @PATCH("api/auth/fcm-token")
     suspend fun updateFcmToken(@Body body: Map<String, String>): Response<MessageResponse>
 

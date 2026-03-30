@@ -79,6 +79,12 @@ data class UpdateBankInfoRequest(
     @SerialName("wise_email") val wiseEmail: String? = null,
 )
 
+@Serializable
+data class GoogleAuthRequest(
+    val token: String,
+    @SerialName("fcmToken") val fcmToken: String? = null,
+)
+
 // ── Patient ───────────────────────────────────────────────────────────────────
 
 @Serializable

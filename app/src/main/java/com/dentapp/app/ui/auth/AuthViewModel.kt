@@ -37,6 +37,16 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun signInWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _state.value = AuthUiState(isLoading = true)
+            when (val r = repo.googleAuth(idToken)) {
+                is Result.Success -> _state.value = AuthUiState(success = true, role = r.data.user.role)
+                is Result.Error   -> _state.value = AuthUiState(error = r.message)
+            }
+        }
+    }
+
     fun registerPatient(
         email: String, password: String, fullName: String,
         phone: String, dateOfBirth: String,
@@ -72,6 +82,8 @@ class AuthViewModel @Inject constructor(
             }
         }
     }
+
+    fun setError(msg: String) { _state.value = AuthUiState(error = msg) }
 
     fun clearError() { _state.value = _state.value.copy(error = null) }
 

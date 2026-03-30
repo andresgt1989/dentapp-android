@@ -2,6 +2,7 @@ package com.dentapp.app.data.repository
 
 import com.dentapp.app.data.api.ApiService
 import com.dentapp.app.data.model.AuthResponse
+import com.dentapp.app.data.model.GoogleAuthRequest
 import com.dentapp.app.data.model.LoginRequest
 import com.dentapp.app.data.model.RegisterRequest
 import com.dentapp.app.utils.TokenStore
@@ -49,6 +50,21 @@ class AuthRepository @Inject constructor(
             } else {
                 val code = response.code()
                 Result.Error(if (code == 409) "El email ya está registrado" else "Error al registrar")
+            }
+        } catch (e: Exception) {
+            Result.Error("Sin conexión. Verifica tu internet.")
+        }
+    }
+
+    suspend fun googleAuth(idToken: String, fcmToken: String? = null): Result<AuthResponse> {
+        return try {
+            val response = api.googleAuth(GoogleAuthRequest(idToken, fcmToken))
+            if (response.isSuccessful) {
+                val body = response.body()!!
+                tokenStore.save(body.token, body.user.role, body.user.id)
+                Result.Success(body)
+            } else {
+                Result.Error("Error al autenticar con Google (${response.code()})")
             }
         } catch (e: Exception) {
             Result.Error("Sin conexión. Verifica tu internet.")
