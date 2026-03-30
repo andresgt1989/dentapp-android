@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dentapp.app.ui.theme.*
 
@@ -70,7 +71,7 @@ fun HomeDoctorScreen(onLogout: () -> Unit) {
 }
 
 @Composable
-fun HomePatientScreen(onLogout: () -> Unit) {
+fun HomePatientScreen(onLogout: () -> Unit, onOpenAiManager: () -> Unit = {}) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -98,6 +99,28 @@ fun HomePatientScreen(onLogout: () -> Unit) {
                     subtitle = "¿Cómo podemos ayudarte hoy?",
                     icon = "🦷",
                 )
+            }
+            // ── Botón AI Manager ─────────────────────────────────────────────
+            item {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = androidx.compose.ui.graphics.Color(0xFF1E3A5F),
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onOpenAiManager,
+                ) {
+                    Row(
+                        Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Text("🦷", style = MaterialTheme.typography.headlineMedium)
+                        Column(Modifier.weight(1f)) {
+                            Text("AI Manager Dental", style = MaterialTheme.typography.titleMedium, color = White, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                            Text("Día 7 de recuperación · Pregúntame lo que necesites", style = MaterialTheme.typography.bodySmall, color = White.copy(alpha = 0.75f))
+                        }
+                        Icon(Icons.Outlined.ChevronRight, null, tint = White)
+                    }
+                }
             }
             item {
                 DentButton_Home("Agendar nueva cita", Icons.Outlined.Add)

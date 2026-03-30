@@ -59,4 +59,14 @@ interface ApiService {
     // ── Payments ──────────────────────────────────────────────────────────────
     @POST("api/payments/create-intent")
     suspend fun createPaymentIntent(@Body request: CreatePaymentIntentRequest): Response<PaymentIntentResponse>
+
+    // ── AI Manager ────────────────────────────────────────────────────────────
+    @POST("api/ai/chat")
+    suspend fun aiChat(@Body request: AiChatRequest): Response<AiChatResponse>
+
+    @GET("api/ai/context")
+    suspend fun aiContext(): Response<AiContextResponse>
+
+    @GET("api/ai/history")
+    suspend fun aiHistory(): Response<AiHistoryResponse>
 }

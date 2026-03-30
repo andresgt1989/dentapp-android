@@ -3,6 +3,7 @@ package com.dentapp.app.ui.navigation
 import androidx.compose.runtime.*
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
+import com.dentapp.app.ui.ai.AiManagerScreen
 import com.dentapp.app.ui.auth.LoginScreen
 import com.dentapp.app.ui.auth.RegisterScreen
 import com.dentapp.app.ui.home.HomeDoctorScreen
@@ -22,6 +23,7 @@ object Routes {
     const val ONBOARDING_DOCTOR   = "onboarding_doctor"
     const val HOME_PATIENT        = "home_patient"
     const val HOME_DOCTOR         = "home_doctor"
+    const val AI_MANAGER          = "ai_manager"
 }
 
 @Composable
@@ -102,7 +104,12 @@ fun DentAppNavGraph(
                         popUpTo(0) { inclusive = true }
                     }
                 },
+                onOpenAiManager = { navController.navigate(Routes.AI_MANAGER) },
             )
+        }
+
+        composable(Routes.AI_MANAGER) {
+            AiManagerScreen(onBack = { navController.popBackStack() })
         }
 
         composable(Routes.HOME_DOCTOR) {
