@@ -48,6 +48,26 @@ class AiRepository @Inject constructor(private val api: ApiService) {
         }
     }
 
+    suspend fun getClinicalAlerts(): Result<ClinicalAlertsResponse> {
+        return try {
+            val res = api.getClinicalAlerts()
+            if (res.isSuccessful) Result.Success(res.body()!!)
+            else Result.Error("Error al cargar alertas.")
+        } catch (e: Exception) {
+            Result.Error("Sin conexión.")
+        }
+    }
+
+    suspend fun confirmMedication(medicamentoId: String): Result<ConfirmMedicationResponse> {
+        return try {
+            val res = api.confirmMedication(ConfirmMedicationRequest(medicamentoId))
+            if (res.isSuccessful) Result.Success(res.body()!!)
+            else Result.Error("Error al confirmar.")
+        } catch (e: Exception) {
+            Result.Error("Sin conexión.")
+        }
+    }
+
     suspend fun submitFeedback(request: AiFeedbackRequest): Result<AiFeedbackResponse> {
         return try {
             val res = api.submitAiFeedback(request)

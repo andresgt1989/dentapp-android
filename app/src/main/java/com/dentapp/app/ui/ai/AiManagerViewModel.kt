@@ -14,10 +14,12 @@ import javax.inject.Inject
 data class AiUiState(
     val messages: List<AiMessage> = emptyList(),
     val context: AiContextResponse? = null,
+    val pendingAlerts: List<ClinicalAlert> = emptyList(),
     val isLoading: Boolean = false,
     val isSending: Boolean = false,
     val error: String? = null,
     val lastFeedbackPoints: Int? = null,
+    val confirmedMedIds: Set<String> = emptySet(),
 )
 
 @HiltViewModel
@@ -31,14 +33,39 @@ class AiManagerViewModel @Inject constructor(
     init {
         loadHistory()
         loadContext()
+        loadPendingAlerts()
     }
 
     private fun loadHistory() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             when (val r = repo.getHistory()) {
-                is Result.Success -> _state.update { it.copy(messages = r.data.messages, isLoading = false) }
-                is Result.Error   -> _state.update { it.copy(isLoading = false) }
+                is Result.Success -> {
+                    val msgs = r.data.messages
+                    _state.update { it.copy(messages = msgs, isLoading = false) }
+                    // IA proactiva: saluda primero si no hay historial
+                    if (msgs.isEmpty()) startProactiveGreeting()
+                }
+                is Result.Error -> _state.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    // Llamar /api/ai/start para obtener saludo personalizado en primera apertura del día
+    private fun startProactiveGreeting() {
+        viewModelScope.launch {
+            _state.update { it.copy(isSending = true) }
+            when (val r = repo.startConversation()) {
+                is Result.Success -> {
+                    val text = r.data.reply.ifBlank { r.data.message }
+                    if (text.isNotBlank()) {
+                        val aiMsg = AiMessage(role = "assistant", content = text)
+                        _state.update { it.copy(messages = listOf(aiMsg), isSending = false) }
+                    } else {
+                        _state.update { it.copy(isSending = false) }
+                    }
+                }
+                is Result.Error -> _state.update { it.copy(isSending = false) }
             }
         }
     }
@@ -48,6 +75,15 @@ class AiManagerViewModel @Inject constructor(
             when (val r = repo.getContext()) {
                 is Result.Success -> _state.update { it.copy(context = r.data) }
                 is Result.Error   -> { /* sin procedimiento activo */ }
+            }
+        }
+    }
+
+    private fun loadPendingAlerts() {
+        viewModelScope.launch {
+            when (val r = repo.getClinicalAlerts()) {
+                is Result.Success -> _state.update { it.copy(pendingAlerts = r.data.alerts) }
+                is Result.Error   -> { /* sin alertas */ }
             }
         }
     }
@@ -77,6 +113,22 @@ class AiManagerViewModel @Inject constructor(
                         error = r.message,
                     )}
                 }
+            }
+        }
+    }
+
+    fun confirmMedication(medicamentoId: String) {
+        viewModelScope.launch {
+            when (val r = repo.confirmMedication(medicamentoId)) {
+                is Result.Success -> {
+                    _state.update { it.copy(
+                        confirmedMedIds = it.confirmedMedIds + medicamentoId,
+                        lastFeedbackPoints = 5,
+                    )}
+                    delay(3000)
+                    _state.update { it.copy(lastFeedbackPoints = null) }
+                }
+                is Result.Error -> { /* silencioso */ }
             }
         }
     }

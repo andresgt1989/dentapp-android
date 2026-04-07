@@ -148,6 +148,14 @@ interface ApiService {
     @GET("api/patients/me/tratamientos")
     suspend fun getTratamientos(): Response<com.dentapp.app.ui.tratamiento.TratamientosResponse>
 
+    // ── Alertas clínicas ──────────────────────────────────────────────────────
+    @GET("api/patients/me/clinical-alerts")
+    suspend fun getClinicalAlerts(): Response<ClinicalAlertsResponse>
+
+    // ── Confirmar medicamento ─────────────────────────────────────────────────
+    @POST("api/ai/confirm-medication")
+    suspend fun confirmMedication(@Body request: ConfirmMedicationRequest): Response<ConfirmMedicationResponse>
+
     // ── QR / Share token ──────────────────────────────────────────────────────
     @POST("api/expediente/share-token")
     suspend fun createShareToken(@Body request: ShareTokenRequest): Response<ShareTokenResponse>

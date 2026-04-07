@@ -183,8 +183,9 @@ private fun EndodonciaDetailCard(t: TratamientoDto) {
         } catch (_: Exception) { 0 }
     }
 
-    val necesitaCoronaUrgente = diasDesdeInicio > 90
-    val advertenciaCoronaProxima = diasDesdeInicio in 60..90
+    // Evidencia clínica: supervivencia 35% vs 92% con/sin corona. Alerta desde día 14.
+    val necesitaCoronaUrgente = diasDesdeInicio >= 60
+    val advertenciaCoronaProxima = diasDesdeInicio in 14..59
     val coronaYaInstalada = t.faseActual?.lowercase()?.contains("corona") == true ||
                             t.status == "completado"
 
@@ -246,9 +247,9 @@ private fun EndodonciaDetailCard(t: TratamientoDto) {
                         Spacer(Modifier.height(2.dp))
                         Text(
                             if (necesitaCoronaUrgente)
-                                "Han pasado $diasDesdeInicio días desde el inicio. El diente tratado con endodoncia sin corona tiene alto riesgo de fractura vertical irreparable. Agenda con tu doctor a la brevedad."
+                                "Han pasado $diasDesdeInicio días. Sin corona, el riesgo de fractura irreparable es alto. Busca un prostodoncista a la brevedad."
                             else
-                                "Han pasado $diasDesdeInicio días. Es buen momento para planificar la corona definitiva y proteger el diente.",
+                                "Han pasado $diasDesdeInicio días. Tu diente necesita corona urgente. Sin ella puede fracturarse.",
                             style = MaterialTheme.typography.bodySmall,
                             color = if (necesitaCoronaUrgente) Error else Warning,
                         )
@@ -284,6 +285,25 @@ private fun EndodonciaDetailCard(t: TratamientoDto) {
                         )
                     }
                 }
+            }
+        }
+
+        // ── CTA buscar prostodoncista ──────────────────────────────────────
+        if (!coronaYaInstalada && diasDesdeInicio >= 14) {
+            Button(
+                onClick = { /* book_appointment CTA */ },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (necesitaCoronaUrgente) Error else Warning,
+                ),
+            ) {
+                Text(
+                    "Buscar prostodoncista ahora →",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                )
             }
         }
 
@@ -325,7 +345,7 @@ private fun EndodonciaDetailCard(t: TratamientoDto) {
                     Column {
                         Text("Sin corona protectora", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                         Text(
-                            "El límite recomendado es 90 días. Después el riesgo de fractura aumenta significativamente.",
+                            "Alerta desde día 14. Riesgo crítico desde día 60. Sin corona: supervivencia del diente cae al 35%.",
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary,
                         )

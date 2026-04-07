@@ -3,11 +3,13 @@ package com.dentapp.app.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dentapp.app.data.model.AppointmentDto
+import com.dentapp.app.data.model.ClinicalAlert
 import com.dentapp.app.data.model.DoctorDto
 import com.dentapp.app.data.model.UrgenciaRequest
 import com.dentapp.app.data.repository.DoctorRepository
 import com.dentapp.app.data.repository.Result
 import com.dentapp.app.data.api.ApiService
+import com.dentapp.app.ui.tratamiento.TratamientoDto
 import com.dentapp.app.utils.TokenStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -19,6 +21,8 @@ data class HomePatientState(
     val email: String = "",
     val doctors: List<DoctorDto> = emptyList(),
     val appointments: List<AppointmentDto> = emptyList(),
+    val criticalAlerts: List<ClinicalAlert> = emptyList(),
+    val tratamientos: List<TratamientoDto> = emptyList(),
     val isLoadingDoctors: Boolean = false,
     val isLoadingAppointments: Boolean = false,
     val error: String? = null,
@@ -38,6 +42,8 @@ class HomePatientViewModel @Inject constructor(
         loadDoctors()
         loadAppointments()
         loadPatientProfile()
+        loadClinicalAlerts()
+        loadTratamientos()
     }
 
     fun loadDoctors() {
@@ -77,9 +83,31 @@ class HomePatientViewModel @Inject constructor(
                 val r = api.getMyPatientProfile()
                 if (r.isSuccessful) {
                     val patient = r.body()?.patient
-                    _state.update {
-                        it.copy(patientName = patient?.fullName ?: "")
-                    }
+                    _state.update { it.copy(patientName = patient?.fullName ?: "") }
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun loadClinicalAlerts() {
+        viewModelScope.launch {
+            try {
+                val r = api.getClinicalAlerts()
+                if (r.isSuccessful) {
+                    val criticas = (r.body()?.alerts ?: emptyList())
+                        .filter { it.prioridad == "CRITICA" }
+                    _state.update { it.copy(criticalAlerts = criticas) }
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun loadTratamientos() {
+        viewModelScope.launch {
+            try {
+                val r = api.getTratamientos()
+                if (r.isSuccessful) {
+                    _state.update { it.copy(tratamientos = r.body()?.tratamientos ?: emptyList()) }
                 }
             } catch (_: Exception) {}
         }

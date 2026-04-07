@@ -27,7 +27,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dentapp.app.data.model.AppointmentDto
+import com.dentapp.app.data.model.ClinicalAlert
 import com.dentapp.app.data.model.DoctorDto
+import com.dentapp.app.ui.tratamiento.TratamientoDto
+import com.dentapp.app.ui.tratamiento.TratamientoCard
 import com.dentapp.app.ui.theme.*
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -114,6 +117,7 @@ fun HomePatientScreen(
                 onOpenAiManager = onOpenAiManager,
                 onSearchDoctors = { selectedTab = 1 },
                 onSendUrgencia = { desc -> viewModel.sendUrgencia(desc) },
+                onOpenTratamientos = onOpenTratamientos,
                 modifier = Modifier.padding(padding),
             )
             1 -> DoctoresTab(
@@ -158,6 +162,7 @@ private fun InicioTab(
     onOpenAiManager: () -> Unit,
     onSearchDoctors: () -> Unit,
     onSendUrgencia: (String) -> Unit,
+    onOpenTratamientos: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var showUrgenciaDialog by remember { mutableStateOf(false) }
@@ -203,6 +208,43 @@ private fun InicioTab(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        // ── Banner alerta CRITICA (si existe) → abre AI Manager ────────────
+        if (state.criticalAlerts.isNotEmpty()) {
+            item {
+                val alert = state.criticalAlerts.first()
+                Card(
+                    onClick = onOpenAiManager,
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                    border = BorderStroke(1.5.dp, Color(0xFFD32F2F)),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text("🚨", fontSize = 20.sp)
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "Alerta clínica importante",
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFD32F2F),
+                                fontSize = 13.sp,
+                            )
+                            Text(
+                                alert.mensaje,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFB71C1C),
+                                maxLines = 2,
+                            )
+                        }
+                        Icon(Icons.Outlined.ChevronRight, null, tint = Color(0xFFD32F2F))
+                    }
+                }
+            }
+        }
+
         // Bienvenida
         item {
             Box(
@@ -304,6 +346,28 @@ private fun InicioTab(
                             style = MaterialTheme.typography.bodySmall, color = DentTextSecond)
                     }
                     Icon(Icons.Outlined.ChevronRight, null, tint = Primary)
+                }
+            }
+        }
+
+        // ── Mis tratamientos (si tiene activos) ─────────────────────────────
+        if (state.tratamientos.isNotEmpty()) {
+            item {
+                Text(
+                    "Mis tratamientos",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = DentTextPrimary,
+                )
+            }
+            items(state.tratamientos.take(2), key = { "trat_${it.id}" }) { t ->
+                TratamientoCard(tratamiento = t, onClick = onOpenTratamientos)
+            }
+            if (state.tratamientos.size > 2) {
+                item {
+                    TextButton(onClick = onOpenTratamientos, modifier = Modifier.fillMaxWidth()) {
+                        Text("Ver todos los tratamientos →", color = Primary)
+                    }
                 }
             }
         }

@@ -28,6 +28,7 @@ data class PacienteInfo(val nombre: String)
 
 @Serializable
 data class MedicacionStatus(
+    val id: String? = null,
     val medicamento: String,
     val dosis: String,
     @SerialName("frecuencia_hrs") val frecuenciaHrs: Int,
@@ -50,8 +51,32 @@ data class AiHistoryResponse(val messages: List<AiMessage>)
 
 @Serializable
 data class AiStartResponse(
-    @SerialName("conversation_id") val conversationId: String,
-    val message: String = "",
+    @SerialName("conversation_id") val conversationId: String = "",
+    val reply: String = "",
+    val message: String = "",  // legacy compat
+)
+
+@Serializable
+data class ClinicalAlert(
+    val id: String,
+    val tipo: String,
+    val prioridad: String,  // CRITICA | ALTA | MEDIA
+    val mensaje: String,
+    val visto: Boolean = false,
+    val resuelto: Boolean = false,
+    @SerialName("created_at") val createdAt: String = "",
+)
+
+@Serializable
+data class ClinicalAlertsResponse(val alerts: List<ClinicalAlert>)
+
+@Serializable
+data class ConfirmMedicationRequest(@SerialName("medicamentoId") val medicamentoId: String)
+
+@Serializable
+data class ConfirmMedicationResponse(
+    val ok: Boolean,
+    @SerialName("confirmadoEn") val confirmadoEn: String = "",
 )
 
 @Serializable

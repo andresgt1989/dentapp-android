@@ -60,8 +60,8 @@ fun AiManagerScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     var inputText by remember { mutableStateOf("") }
-    // Guard against duplicate sends (race between button tap and keyboard IME action)
     var localSending by remember { mutableStateOf(false) }
+    var showMeds by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.isSending) {
         if (!state.isSending) localSending = false
@@ -82,7 +82,6 @@ fun AiManagerScreen(
         }
     }
 
-    // Mostrar error como snackbar
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(state.error) {
         state.error?.let {
@@ -97,7 +96,6 @@ fun AiManagerScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        // Avatar AI
                         Box(
                             Modifier
                                 .size(36.dp)
@@ -108,12 +106,10 @@ fun AiManagerScreen(
                             Text("🦷", fontSize = 18.sp)
                         }
                         Column {
-                            Text("DentApp Recovery AI™", style = MaterialTheme.typography.titleMedium, color = White, fontWeight = FontWeight.Bold)
-                            state.context?.let {
-                                Text("Día ${it.diasPostCirugia} • Dra. Andreá Oris",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = White.copy(alpha = 0.8f))
-                            }
+                            Text("DentApp AI™", style = MaterialTheme.typography.titleMedium, color = White, fontWeight = FontWeight.Bold)
+                            Text("Asistente dental personal",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = White.copy(alpha = 0.8f))
                         }
                     }
                 },
@@ -127,7 +123,6 @@ fun AiManagerScreen(
         },
         bottomBar = {
             Column {
-                // Quick replies — always visible above input
                 QuickReplies(
                     isSending = localSending || state.isSending,
                     onSelect = { msg ->
@@ -149,12 +144,122 @@ fun AiManagerScreen(
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
 
-            // Tarjeta de contexto (colapsa cuando hay mensajes)
+            // ── Banner alerta clínica (CRITICA = rojo, ALTA = amarillo) ─────────
+            val topAlert = state.pendingAlerts.firstOrNull()
+            if (topAlert != null) {
+                val isCritical = topAlert.prioridad == "CRITICA"
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = if (isCritical) Color(0xFFFFEBEE) else Color(0xFFFFFDE7),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(if (isCritical) "🚨" else "⚠️", fontSize = 16.sp)
+                        Text(
+                            topAlert.mensaje,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isCritical) Color(0xFFB71C1C) else Color(0xFFF57F17),
+                            modifier = Modifier.weight(1f),
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+
+            // ── Sección medicamentos del día (colapsable) ─────────────────────
+            val activeMeds = state.context?.medicacion?.filter { !it.completado } ?: emptyList()
+            if (activeMeds.isNotEmpty()) {
+                Surface(color = Color.White) {
+                    Column {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showMeds = !showMeds }
+                                .padding(horizontal = 14.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text("💊", fontSize = 14.sp)
+                                Text(
+                                    "Mis medicamentos de hoy",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                            Icon(
+                                if (showMeds) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                                contentDescription = null,
+                                tint = DentBlue,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                        AnimatedVisibility(visible = showMeds) {
+                            Column(
+                                modifier = Modifier.padding(horizontal = 14.dp).padding(bottom = 8.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                activeMeds.forEach { med ->
+                                    val medId = med.id
+                                    val yaConfirmado = medId != null && state.confirmedMedIds.contains(medId)
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(if (yaConfirmado) Color(0xFFE8F5E9) else Color(0xFFF8FAFC))
+                                            .padding(10.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                    ) {
+                                        Column(Modifier.weight(1f)) {
+                                            Text(
+                                                med.medicamento,
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.Medium,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                            Text(
+                                                "${med.dosis} · c/${med.frecuenciaHrs}h · ${med.adherenciaPct}% adherencia",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = DentTextSecond,
+                                            )
+                                        }
+                                        if (medId != null) {
+                                            IconButton(
+                                                onClick = { if (!yaConfirmado) viewModel.confirmMedication(medId) },
+                                                modifier = Modifier.size(36.dp),
+                                            ) {
+                                                Icon(
+                                                    if (yaConfirmado) Icons.Outlined.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
+                                                    contentDescription = "Confirmar toma",
+                                                    tint = if (yaConfirmado) DentGreen else DentTextSecond,
+                                                    modifier = Modifier.size(22.dp),
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                HorizontalDivider(thickness = 0.5.dp)
+            }
+
+            // ── Tarjeta de contexto (colapsa cuando hay mensajes) ──────────────
             AnimatedVisibility(visible = state.messages.isEmpty() && state.context != null) {
                 state.context?.let { ContextCard(it) }
             }
 
-            // Lista de mensajes
+            // ── Lista de mensajes ──────────────────────────────────────────────
             if (state.isLoading) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = DentBlue)
@@ -170,7 +275,6 @@ fun AiManagerScreen(
                 ) {
                     items(state.messages, key = { "${it.role}_${it.createdAt}_${it.content.take(10)}" }) { msg ->
                         MessageBubble(msg)
-                        // Fila de feedback discreta debajo de cada mensaje del asistente
                         if (msg.role == "assistant") {
                             FeedbackRow(
                                 onUtil  = { viewModel.submitFeedback(null, true,  5) },
@@ -182,7 +286,6 @@ fun AiManagerScreen(
                         item { TypingIndicator() }
                     }
                 }
-                // Animación discreta "+2 pts" al dar feedback
                 state.lastFeedbackPoints?.let { pts ->
                     Box(
                         modifier = Modifier.fillMaxWidth(),
@@ -219,7 +322,6 @@ private fun ContextCard(ctx: AiContextResponse) {
                 }
             }
 
-            // Progreso de recuperación
             LinearProgressIndicator(
                 progress = { ctx.diasPostCirugia / 30f },
                 modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
@@ -227,7 +329,6 @@ private fun ContextCard(ctx: AiContextResponse) {
                 trackColor = Color(0xFFE2E8F0),
             )
 
-            // Medicación
             ctx.medicacion.filter { !it.completado }.forEach { med ->
                 Row(
                     Modifier.fillMaxWidth()
@@ -245,7 +346,6 @@ private fun ContextCard(ctx: AiContextResponse) {
                 }
             }
 
-            // Alertas de hábitos
             if (ctx.perfil.tabaco == "vape") {
                 Row(
                     Modifier.fillMaxWidth()
@@ -377,7 +477,7 @@ private fun TypingIndicator() {
     }
 }
 
-// ── Estado vacío ──────────────────────────────────────────────────────────────
+// ── Estado vacío — IA proactiva con chips ─────────────────────────────────────
 @Composable
 private fun EmptyState() {
     Column(
@@ -387,27 +487,36 @@ private fun EmptyState() {
     ) {
         Text("🦷", fontSize = 48.sp)
         Spacer(Modifier.height(12.dp))
-        Text("Hola, soy DentApp Recovery AI™", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text("Hola, soy tu asistente dental personal", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
-        Text("Tengo acceso a tu historial clínico, medicación e indicaciones de la Dra. Andreá. Pregúntame lo que necesites.",
+        Text(
+            "¿En qué te puedo ayudar hoy?",
             style = MaterialTheme.typography.bodyMedium,
             color = Color.Gray,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-        Spacer(Modifier.height(24.dp))
-        // Sugerencias rápidas
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
+        Spacer(Modifier.height(20.dp))
+        // Chips proactivos per insight de retención: personalizar engagement
         listOf(
-            "¿Cuántas pastillas me faltan?",
-            "¿Puedo comer hoy pizza?",
-            "Me duele, ¿es normal?",
-            "Ayúdame a dejar el vape",
-        ).forEach { sugerencia ->
+            "Tengo dolor 🦷",
+            "Medicación 💊",
+            "Mi tratamiento",
+            "Todo bien ✅",
+        ).forEach { chip ->
             SuggestionChip(
                 onClick = { },
-                label = { Text(sugerencia, style = MaterialTheme.typography.labelMedium) },
+                label = { Text(chip, style = MaterialTheme.typography.labelMedium) },
                 modifier = Modifier.padding(vertical = 3.dp),
                 colors = SuggestionChipDefaults.suggestionChipColors(containerColor = Color.White),
             )
         }
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "(ℹ️ Orientación dental — no reemplaza diagnóstico profesional)",
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.Gray,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
     }
 }
 

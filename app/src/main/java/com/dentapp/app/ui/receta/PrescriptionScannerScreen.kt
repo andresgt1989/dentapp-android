@@ -28,6 +28,32 @@ fun PrescriptionScannerScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var disclaimerAceptado by remember { mutableStateOf(false) }
+
+    // Disclaimer legal antes de procesar receta — lección SmileDirectClub
+    if (!disclaimerAceptado) {
+        AlertDialog(
+            onDismissRequest = onBack,
+            icon = { Text("⚠️", fontSize = 28.sp) },
+            title = { Text("Orientación — no diagnóstico", fontWeight = FontWeight.Bold) },
+            text = {
+                Text(
+                    "Este análisis de receta es orientación — no reemplaza diagnóstico profesional. " +
+                    "Consulta con tu dentista o médico para confirmación.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { disclaimerAceptado = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
+                ) { Text("Entendido, continuar", color = Color.White) }
+            },
+            dismissButton = {
+                TextButton(onClick = onBack) { Text("Cancelar") }
+            },
+        )
+    }
 
     LaunchedEffect(state.snackbarMessage) {
         state.snackbarMessage?.let {
