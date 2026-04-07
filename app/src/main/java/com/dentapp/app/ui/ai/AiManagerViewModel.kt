@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.dentapp.app.data.model.*
 import com.dentapp.app.data.repository.AiRepository
 import com.dentapp.app.data.repository.Result
+import kotlinx.coroutines.delay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -16,6 +17,7 @@ data class AiUiState(
     val isLoading: Boolean = false,
     val isSending: Boolean = false,
     val error: String? = null,
+    val lastFeedbackPoints: Int? = null,
 )
 
 @HiltViewModel
@@ -80,4 +82,22 @@ class AiManagerViewModel @Inject constructor(
     }
 
     fun clearError() = _state.update { it.copy(error = null) }
+
+    fun submitFeedback(conversationId: String?, fueUtil: Boolean, rating: Int, comentario: String? = null) {
+        viewModelScope.launch {
+            val result = repo.submitFeedback(
+                AiFeedbackRequest(
+                    conversationId = conversationId,
+                    rating = rating,
+                    fueUtil = fueUtil,
+                    comentario = comentario,
+                )
+            )
+            if (result is Result.Success) {
+                _state.update { it.copy(lastFeedbackPoints = result.data.puntosGanados) }
+                delay(3000)
+                _state.update { it.copy(lastFeedbackPoints = null) }
+            }
+        }
+    }
 }

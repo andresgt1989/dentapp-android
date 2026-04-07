@@ -10,6 +10,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -166,9 +170,30 @@ fun AiManagerScreen(
                 ) {
                     items(state.messages, key = { "${it.role}_${it.createdAt}_${it.content.take(10)}" }) { msg ->
                         MessageBubble(msg)
+                        // Fila de feedback discreta debajo de cada mensaje del asistente
+                        if (msg.role == "assistant") {
+                            FeedbackRow(
+                                onUtil  = { viewModel.submitFeedback(null, true,  5) },
+                                onNoUtil = { viewModel.submitFeedback(null, false, 2) },
+                            )
+                        }
                     }
                     if (state.isSending) {
                         item { TypingIndicator() }
+                    }
+                }
+                // Animación discreta "+2 pts" al dar feedback
+                state.lastFeedbackPoints?.let { pts ->
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.BottomEnd,
+                    ) {
+                        Text(
+                            "+$pts pts ✨",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = DentGreen,
+                            modifier = Modifier.padding(end = 20.dp, bottom = 8.dp),
+                        )
                     }
                 }
             }
@@ -278,6 +303,52 @@ private fun MessageBubble(msg: AiMessage) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (isUser) White else BubbleAiText,
                 lineHeight = 20.sp,
+            )
+        }
+    }
+}
+
+// ── Fila de feedback discreta ────────────────────────────────────────────────
+@Composable
+private fun FeedbackRow(
+    onUtil: () -> Unit,
+    onNoUtil: () -> Unit,
+) {
+    var voted by remember { mutableStateOf(false) }
+    if (voted) return
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 48.dp, end = 8.dp, top = 2.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            "¿Te fue útil?",
+            style = MaterialTheme.typography.labelSmall,
+            color = DentTextSecond,
+        )
+        Spacer(Modifier.width(6.dp))
+        IconButton(
+            onClick = { voted = true; onUtil() },
+            modifier = Modifier.size(28.dp),
+        ) {
+            Icon(
+                Icons.Outlined.ThumbUp,
+                contentDescription = "Sí, útil",
+                tint = DentGreen,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+        IconButton(
+            onClick = { voted = true; onNoUtil() },
+            modifier = Modifier.size(28.dp),
+        ) {
+            Icon(
+                Icons.Outlined.ThumbDown,
+                contentDescription = "No útil",
+                tint = DentTextSecond,
+                modifier = Modifier.size(16.dp),
             )
         }
     }

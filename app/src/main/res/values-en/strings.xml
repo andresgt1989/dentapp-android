@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English strings — Sprint 3 i18n prep. Populate in v2 when English is activated. -->
+<!-- DO NOT ACTIVATE: add locale "en" to build.gradle.kts when ready. -->
+<resources>
+    <string name="app_name">DentApp</string>
+</resources>

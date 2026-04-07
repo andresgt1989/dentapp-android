@@ -41,6 +41,12 @@ fun HomePatientScreen(
     onOpenAiManager: () -> Unit,
     onOpenExpediente: () -> Unit = {},
     onOpenBooking: (doctorId: String, doctorName: String) -> Unit = { _, _ -> },
+    onOpenHistorialMedico: () -> Unit = {},
+    onOpenMisDatos: () -> Unit = {},
+    onOpenHistorialCitas: () -> Unit = {},
+    onOpenNotificaciones: () -> Unit = {},
+    onOpenPrivacidad: () -> Unit = {},
+    onOpenTratamientos: () -> Unit = {},
     viewModel: HomePatientViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -130,6 +136,12 @@ fun HomePatientScreen(
                 email = state.email,
                 onLogout = onLogout,
                 onOpenExpediente = onOpenExpediente,
+                onOpenHistorialMedico = onOpenHistorialMedico,
+                onOpenMisDatos = onOpenMisDatos,
+                onOpenHistorialCitas = onOpenHistorialCitas,
+                onOpenNotificaciones = onOpenNotificaciones,
+                onOpenPrivacidad = onOpenPrivacidad,
+                onOpenTratamientos = onOpenTratamientos,
                 modifier = Modifier.padding(padding),
             )
         }
@@ -511,12 +523,18 @@ private fun PerfilTab(
     email: String,
     onLogout: () -> Unit,
     onOpenExpediente: () -> Unit = {},
+    onOpenHistorialMedico: () -> Unit = {},
+    onOpenMisDatos: () -> Unit = {},
+    onOpenHistorialCitas: () -> Unit = {},
+    onOpenNotificaciones: () -> Unit = {},
+    onOpenPrivacidad: () -> Unit = {},
+    onOpenTratamientos: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         // Avatar + nombre
         item {
@@ -555,56 +573,60 @@ private fun PerfilTab(
             }
         }
 
-        // Opciones
+        // ── Opciones de perfil ──────────────────────────────────────────────
+        item { PerfilMenuRow(Icons.Outlined.Person, "Mis datos", "Ver y editar perfil", onOpenMisDatos) }
         item {
-            ProfileMenuItem(Icons.Outlined.Person, "Mis datos", "Ver y editar perfil")
+            PerfilMenuRow(
+                icon = Icons.Outlined.FolderOpen,
+                titulo = "Mi Expediente Dental",
+                subtitulo = "Historial de procedimientos",
+                onClick = onOpenExpediente,
+            )
         }
         item {
-            Card(
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = White),
-                elevation = CardDefaults.cardElevation(1.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onOpenExpediente),
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("🦷", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.width(14.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            "Mi Expediente Dental",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = DentTextPrimary,
-                        )
-                        Text(
-                            "Historial de procedimientos",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = DentTextSecond,
-                        )
-                    }
-                    Icon(
-                        Icons.Outlined.ChevronRight,
-                        null,
-                        tint = DentTextSecond,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-            }
+            PerfilMenuRow(
+                icon = Icons.Outlined.HealthAndSafety,
+                titulo = "Historial médico",
+                subtitulo = "Condiciones sistémicas y alergias",
+                onClick = onOpenHistorialMedico,
+                badge = "IA",
+                badgeColor = Color(0xFF5C6BC0),
+            )
         }
         item {
-            ProfileMenuItem(Icons.Outlined.HealthAndSafety, "Historial médico", "Condiciones y alergias")
+            PerfilMenuRow(
+                icon = Icons.Outlined.MedicalServices,
+                titulo = "Mis tratamientos",
+                subtitulo = "Endodoncia, ortodoncia, implantes…",
+                onClick = onOpenTratamientos,
+            )
         }
         item {
-            ProfileMenuItem(Icons.Outlined.Notifications, "Notificaciones", "Recordatorios y alertas")
+            PerfilMenuRow(
+                icon = Icons.Outlined.CalendarMonth,
+                titulo = "Historial de citas",
+                subtitulo = "Ver y cancelar citas",
+                onClick = onOpenHistorialCitas,
+            )
         }
         item {
-            ProfileMenuItem(Icons.Outlined.Security, "Privacidad", "Datos y seguridad")
+            PerfilMenuRow(
+                icon = Icons.Outlined.Notifications,
+                titulo = "Notificaciones",
+                subtitulo = "Recordatorios y alertas",
+                onClick = onOpenNotificaciones,
+            )
         }
+        item {
+            PerfilMenuRow(
+                icon = Icons.Outlined.Security,
+                titulo = "Privacidad y seguridad",
+                subtitulo = "Datos, QR compartidos y cuenta",
+                onClick = onOpenPrivacidad,
+            )
+        }
+
+        // ── Cerrar sesión ───────────────────────────────────────────────────
         item {
             Card(
                 shape = RoundedCornerShape(14.dp),
@@ -625,6 +647,58 @@ private fun PerfilTab(
             }
         }
         item { Spacer(Modifier.height(8.dp)) }
+    }
+}
+
+@Composable
+private fun PerfilMenuRow(
+    icon: ImageVector,
+    titulo: String,
+    subtitulo: String,
+    onClick: () -> Unit,
+    badge: String? = null,
+    badgeColor: Color = Primary,
+) {
+    Card(
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = White),
+        elevation = CardDefaults.cardElevation(1.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(icon, contentDescription = null, tint = Primary, modifier = Modifier.size(22.dp))
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(titulo, style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium, color = DentTextPrimary)
+                    if (badge != null) {
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = badgeColor.copy(alpha = 0.12f),
+                        ) {
+                            Text(
+                                badge,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
+                                color = badgeColor,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                }
+                Text(subtitulo, style = MaterialTheme.typography.bodySmall, color = DentTextSecond)
+            }
+            Icon(Icons.Outlined.ChevronRight, null, tint = DentTextSecond, modifier = Modifier.size(18.dp))
+        }
     }
 }
 

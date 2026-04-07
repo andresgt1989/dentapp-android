@@ -1,6 +1,7 @@
 package com.dentapp.app.ui.navigation
 
 import androidx.compose.runtime.*
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
@@ -12,12 +13,27 @@ import com.dentapp.app.ui.booking.BookingScreen
 import com.dentapp.app.ui.expediente.ExpedienteScreen
 import com.dentapp.app.ui.home.HomeDoctorScreen
 import com.dentapp.app.ui.home.HomePatientScreen
+import com.dentapp.app.ui.loyalty.LoyaltyScreen
 import com.dentapp.app.ui.onboarding.OnboardingDoctorScreen
 import com.dentapp.app.ui.onboarding.OnboardingPatientScreen
+import com.dentapp.app.ui.perfil.HistorialCitasScreen
+import com.dentapp.app.ui.perfil.HistorialMedicoScreen
+import com.dentapp.app.ui.perfil.MisDatosScreen
+import com.dentapp.app.ui.perfil.NotificacionesScreen
+import com.dentapp.app.ui.perfil.PrivacidadScreen
+import com.dentapp.app.ui.qr.GenerarQRScreen
+import com.dentapp.app.ui.radiografia.XRayCaptureScreen
+import com.dentapp.app.ui.receta.PrescriptionScannerScreen
 import com.dentapp.app.ui.splash.SplashScreen
+import com.dentapp.app.ui.subscriptions.SubscriptionScreen
+import com.dentapp.app.ui.tratamiento.TratamientoDto
+import com.dentapp.app.ui.tratamiento.TreatmentDetailScreen
+import com.dentapp.app.ui.tratamiento.TreatmentTrackingScreen
 import com.dentapp.app.utils.TokenStore
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.net.URLDecoder
 import java.net.URLEncoder
 
@@ -32,19 +48,41 @@ object Routes {
     const val AI_MANAGER          = "ai_manager"
     const val BOOKING             = "booking/{doctorId}/{doctorName}"
     const val EXPEDIENTE          = "expediente"
+    // ── Perfil del paciente ────────────────────────────────────────────────────
+    const val HISTORIAL_MEDICO    = "historial_medico"
+    const val MIS_DATOS           = "mis_datos"
+    const val HISTORIAL_CITAS     = "historial_citas"
+    const val NOTIFICACIONES      = "notificaciones"
+    const val PRIVACIDAD          = "privacidad"
+    // ── Tratamientos ──────────────────────────────────────────────────────────
+    const val TRATAMIENTOS        = "tratamientos"
+    const val TRATAMIENTO_DETALLE = "tratamiento_detalle/{tratamientoJson}"
+    // ── Sprint 3 ──────────────────────────────────────────────────────────────
+    const val GENERAR_QR          = "generar_qr"
+    const val XRAY_CAPTURE        = "xray_capture"
+    const val PRESCRIPTION_SCAN   = "prescription_scan"
+    const val SUBSCRIPTION        = "subscription"
+    const val LOYALTY             = "loyalty"
 
     fun booking(doctorId: String, doctorName: String) =
         "booking/$doctorId/${URLEncoder.encode(doctorName, "UTF-8")}"
+
+    fun tratamientoDetalle(tratamiento: TratamientoDto): String {
+        val json = Json.encodeToString(tratamiento)
+        return "tratamiento_detalle/${URLEncoder.encode(json, "UTF-8")}"
+    }
 }
 
 @Composable
 fun DentAppNavGraph(
     navController: NavHostController,
     tokenStore: TokenStore,
+    onNavReady: (() -> Unit)? = null,
 ) {
     NavHost(navController = navController, startDestination = Routes.SPLASH) {
 
         composable(Routes.SPLASH) {
+            LaunchedEffect(Unit) { onNavReady?.invoke() }
             SplashScreen(
                 onFinished = {
                     val token = runBlocking { tokenStore.token.firstOrNull() }
@@ -101,9 +139,15 @@ fun DentAppNavGraph(
                     runBlocking { tokenStore.clear() }
                     navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
                 },
-                onOpenAiManager  = { navController.navigate(Routes.AI_MANAGER) },
-                onOpenExpediente = { navController.navigate(Routes.EXPEDIENTE) },
-                onOpenBooking    = { id, name -> navController.navigate(Routes.booking(id, name)) },
+                onOpenAiManager       = { navController.navigate(Routes.AI_MANAGER) },
+                onOpenExpediente      = { navController.navigate(Routes.EXPEDIENTE) },
+                onOpenBooking         = { id, name -> navController.navigate(Routes.booking(id, name)) },
+                onOpenHistorialMedico = { navController.navigate(Routes.HISTORIAL_MEDICO) },
+                onOpenMisDatos        = { navController.navigate(Routes.MIS_DATOS) },
+                onOpenHistorialCitas  = { navController.navigate(Routes.HISTORIAL_CITAS) },
+                onOpenNotificaciones  = { navController.navigate(Routes.NOTIFICACIONES) },
+                onOpenPrivacidad      = { navController.navigate(Routes.PRIVACIDAD) },
+                onOpenTratamientos    = { navController.navigate(Routes.TRATAMIENTOS) },
             )
         }
 
@@ -114,6 +158,63 @@ fun DentAppNavGraph(
         composable(Routes.EXPEDIENTE) {
             ExpedienteScreen(onBack = { navController.popBackStack() })
         }
+
+        // ── Perfil del paciente ────────────────────────────────────────────────
+
+        composable(Routes.HISTORIAL_MEDICO) {
+            HistorialMedicoScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.MIS_DATOS) {
+            MisDatosScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.HISTORIAL_CITAS) {
+            HistorialCitasScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.NOTIFICACIONES) {
+            NotificacionesScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.PRIVACIDAD) {
+            PrivacidadScreen(
+                onBack = { navController.popBackStack() },
+                onAccountDeleted = {
+                    runBlocking { tokenStore.clear() }
+                    navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
+                },
+            )
+        }
+
+        // ── Tratamientos ──────────────────────────────────────────────────────
+
+        composable(Routes.TRATAMIENTOS) {
+            TreatmentTrackingScreen(
+                onBack = { navController.popBackStack() },
+                onVerDetalle = { t -> navController.navigate(Routes.tratamientoDetalle(t)) },
+            )
+        }
+
+        composable(
+            Routes.TRATAMIENTO_DETALLE,
+            arguments = listOf(navArgument("tratamientoJson") { type = NavType.StringType }),
+        ) { backStack ->
+            val raw = backStack.arguments?.getString("tratamientoJson") ?: ""
+            val decoded = URLDecoder.decode(raw, "UTF-8")
+            val tratamiento = remember(decoded) {
+                try { Json.decodeFromString<TratamientoDto>(decoded) }
+                catch (_: Exception) { null }
+            }
+            if (tratamiento != null) {
+                TreatmentDetailScreen(
+                    tratamiento = tratamiento,
+                    onBack = { navController.popBackStack() },
+                )
+            }
+        }
+
+        // ── Booking ───────────────────────────────────────────────────────────
 
         composable(
             Routes.BOOKING,
@@ -142,7 +243,32 @@ fun DentAppNavGraph(
                     runBlocking { tokenStore.clear() }
                     navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
                 },
+                onVerExpedientePaciente = { _ ->
+                    navController.navigate(Routes.EXPEDIENTE)
+                },
             )
+        }
+
+        // ── Sprint 3 ──────────────────────────────────────────────────────────
+
+        composable(Routes.GENERAR_QR) {
+            GenerarQRScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.XRAY_CAPTURE) {
+            XRayCaptureScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.PRESCRIPTION_SCAN) {
+            PrescriptionScannerScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.SUBSCRIPTION) {
+            SubscriptionScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.LOYALTY) {
+            LoyaltyScreen(onBack = { navController.popBackStack() })
         }
     }
 }

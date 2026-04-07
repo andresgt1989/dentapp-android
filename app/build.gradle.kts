@@ -118,6 +118,9 @@ dependencies {
 
     // Gson (for SubscriptionModels @SerializedName)
     implementation("com.google.code.gson:gson:2.11.0")
+
+    // Chrome Custom Tabs (Stripe Connect onboarding)
+    implementation("androidx.browser:browser:1.8.0")
 }
 
 kapt {

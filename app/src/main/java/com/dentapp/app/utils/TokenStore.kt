@@ -16,13 +16,15 @@ private val Context.dataStore by preferencesDataStore("dentapp_prefs")
 class TokenStore @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
-    private val KEY_TOKEN = stringPreferencesKey("jwt_token")
-    private val KEY_ROLE  = stringPreferencesKey("user_role")
+    private val KEY_TOKEN   = stringPreferencesKey("jwt_token")
+    private val KEY_ROLE    = stringPreferencesKey("user_role")
     private val KEY_USER_ID = stringPreferencesKey("user_id")
+    private val KEY_COUNTRY = stringPreferencesKey("user_country")
 
     val token: Flow<String?> = context.dataStore.data.map { it[KEY_TOKEN] }
     val role: Flow<String?>  = context.dataStore.data.map { it[KEY_ROLE] }
     val userId: Flow<String?> = context.dataStore.data.map { it[KEY_USER_ID] }
+    val country: Flow<String?> = context.dataStore.data.map { it[KEY_COUNTRY] }
 
     suspend fun save(token: String, role: String, userId: String) {
         context.dataStore.edit {
@@ -30,6 +32,10 @@ class TokenStore @Inject constructor(
             it[KEY_ROLE]    = role
             it[KEY_USER_ID] = userId
         }
+    }
+
+    suspend fun saveCountry(country: String) {
+        context.dataStore.edit { it[KEY_COUNTRY] = country }
     }
 
     suspend fun clear() {

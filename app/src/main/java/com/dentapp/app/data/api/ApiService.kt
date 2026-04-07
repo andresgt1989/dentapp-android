@@ -42,6 +42,30 @@ interface ApiService {
     @GET("api/doctors/me/appointments")
     suspend fun getDoctorAppointments(): Response<AppointmentsResponse>
 
+    @GET("api/doctors/hoy")
+    suspend fun getCitasHoy(): Response<CitasHoyResponse>
+
+    @GET("api/doctors/mis-pacientes")
+    suspend fun getMisPacientes(): Response<MisPacientesResponse>
+
+    @GET("api/doctors/patient-alerts")
+    suspend fun getPatientAlerts(): Response<PatientAlertsResponse>
+
+    @PUT("api/doctors/horario")
+    suspend fun updateHorario(@Body request: UpdateHorarioRequest): Response<HorarioResponse>
+
+    @GET("api/doctors/ingresos")
+    suspend fun getIngresos(): Response<IngresosResponse>
+
+    @POST("api/payments/connect/request-payout")
+    suspend fun requestPayout(): Response<RequestPayoutResponse>
+
+    @POST("api/payments/connect/create")
+    suspend fun stripeConnectCreate(): Response<StripeConnectCreateResponse>
+
+    @GET("api/payments/connect/status")
+    suspend fun stripeConnectStatus(): Response<StripeConnectStatusResponse>
+
     // ── Patients ──────────────────────────────────────────────────────────────
     @GET("api/patients/me")
     suspend fun getMyPatientProfile(): Response<PatientResponse>
@@ -101,6 +125,17 @@ interface ApiService {
     @POST("api/consultas/urgencia")
     suspend fun sendUrgencia(@Body request: UrgenciaRequest): Response<UrgenciaResponse>
 
+    // ── Health Profile ────────────────────────────────────────────────────────
+    @GET("api/patients/me/health-profile")
+    suspend fun getHealthProfile(): Response<HealthProfileResponse>
+
+    @PUT("api/patients/me/health-profile")
+    suspend fun updateHealthProfile(@Body body: Map<String, @JvmSuppressWildcards Any?>): Response<HealthProfileResponse>
+
+    // ── Patient Appointments (cancel) ─────────────────────────────────────────
+    @PATCH("api/appointments/{id}/cancel")
+    suspend fun cancelPatientAppointment(@Path("id") id: String): Response<AppointmentDto>
+
     // ── Dental Records / Expediente ───────────────────────────────────────────
     @GET("api/expediente")
     suspend fun getDentalRecords(): Response<DentalRecordsResponse>
@@ -108,4 +143,45 @@ interface ApiService {
     // ── AI Photo Analysis ─────────────────────────────────────────────────────
     @POST("api/ai/analyze-photo")
     suspend fun analyzePhoto(@Body request: AnalyzePhotoRequest): Response<AnalyzePhotoResponse>
+
+    // ── Tratamientos ──────────────────────────────────────────────────────────
+    @GET("api/patients/me/tratamientos")
+    suspend fun getTratamientos(): Response<com.dentapp.app.ui.tratamiento.TratamientosResponse>
+
+    // ── QR / Share token ──────────────────────────────────────────────────────
+    @POST("api/expediente/share-token")
+    suspend fun createShareToken(@Body request: ShareTokenRequest): Response<ShareTokenResponse>
+
+    @GET("api/expediente/share-tokens/mis")
+    suspend fun getMisShareTokens(): Response<ShareTokensResponse>
+
+    // ── Radiografías ──────────────────────────────────────────────────────────
+    @POST("api/ai/analyze-photo")
+    suspend fun subirRadiografia(@Body request: RadiografiaUploadRequest): Response<RadiografiaResponse>
+
+    // ── Recetas OCR ───────────────────────────────────────────────────────────
+    @POST("api/recetas")
+    suspend fun escanearReceta(@Body request: RecetaOcrRequest): Response<RecetaOcrResponse>
+
+    @GET("api/recetas")
+    suspend fun getMisRecetas(): Response<RecetasResponse>
+
+    // ── AI Feedback ───────────────────────────────────────────────────────────
+    @POST("api/ai/feedback")
+    suspend fun submitAiFeedback(@Body request: AiFeedbackRequest): Response<AiFeedbackResponse>
+
+    // ── Loyalty ───────────────────────────────────────────────────────────────
+    @GET("api/loyalty/balance")
+    suspend fun getLoyaltyBalance(): Response<LoyaltyBalanceResponse>
+
+    @GET("api/loyalty/history")
+    suspend fun getLoyaltyHistory(): Response<LoyaltyHistoryResponse>
+
+    // ── Subscription trial ────────────────────────────────────────────────────
+    @POST("api/subscriptions/start-trial")
+    suspend fun startTrial(): Response<StartTrialResponse>
+
+    // ── Onboarding conversacional ─────────────────────────────────────────────
+    @PATCH("api/users/onboarding")
+    suspend fun saveOnboarding(@Body request: OnboardingRequest): Response<MessageResponse>
 }

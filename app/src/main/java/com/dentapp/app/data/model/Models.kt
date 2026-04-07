@@ -243,3 +243,198 @@ data class LoyaltyStatusResponse(
     val balance: Int,
     val nivel: String,
 )
+
+// ── HomeDoctorScreen ──────────────────────────────────────────────────────────
+
+@Serializable
+data class DoctorCitaDto(
+    val id: String,
+    @SerialName("scheduled_at") val scheduledAt: String,
+    @SerialName("duration_minutes") val durationMinutes: Int = 30,
+    val status: String,
+    val notes: String? = null,
+    @SerialName("patient_name") val patientName: String? = null,
+    val tipo: String? = null,
+    val precio: Int? = null,
+    @SerialName("monto_clinica") val montoClinica: Int? = null,
+    @SerialName("reserva_id") val reservaId: String? = null,
+)
+
+@Serializable
+data class CitasHoyResponse(
+    val citas: List<DoctorCitaDto>,
+    @SerialName("ingresos_hoy") val ingresosHoy: Double = 0.0,
+)
+
+@Serializable
+data class DoctorPacienteDto(
+    val id: String,
+    @SerialName("full_name") val fullName: String,
+    @SerialName("ultima_visita") val ultimaVisita: String? = null,
+    @SerialName("total_citas") val totalCitas: Int = 0,
+)
+
+@Serializable
+data class MisPacientesResponse(val pacientes: List<DoctorPacienteDto>)
+
+@Serializable
+data class PatientAlertDto(
+    val id: String,
+    @SerialName("patient_id") val patientId: String,
+    @SerialName("patient_name") val patientName: String,
+    val tipo: String,
+    val prioridad: String,
+    val mensaje: String,
+    val visto: Boolean = false,
+    @SerialName("dias_pendiente") val diasPendiente: Int = 0,
+    @SerialName("created_at") val createdAt: String,
+)
+
+@Serializable
+data class PatientAlertsResponse(
+    val alertas: List<PatientAlertDto>,
+    @SerialName("no_vistas") val noVistas: Int = 0,
+)
+
+@Serializable
+data class DoctorPayoutDto(
+    val id: String,
+    val amount: Double,
+    val status: String,
+    @SerialName("patient_name") val patientName: String? = null,
+    val fecha: String? = null,
+    @SerialName("created_at") val createdAt: String,
+)
+
+@Serializable
+data class IngresosResponse(
+    @SerialName("total_mes") val totalMes: Double = 0.0,
+    @SerialName("total_pendiente") val totalPendiente: Double = 0.0,
+    val payouts: List<DoctorPayoutDto> = emptyList(),
+)
+
+@Serializable
+data class HorarioDto(
+    @SerialName("horario_inicio") val horarioInicio: String = "08:00",
+    @SerialName("horario_fin") val horarioFin: String = "18:00",
+    @SerialName("dias_laborables") val diasLaborables: List<Int> = listOf(1, 2, 3, 4, 5),
+)
+
+@Serializable
+data class UpdateHorarioRequest(
+    @SerialName("horario_inicio") val horarioInicio: String,
+    @SerialName("horario_fin") val horarioFin: String,
+    @SerialName("dias_laborables") val diasLaborables: List<Int>,
+)
+
+@Serializable
+data class HorarioResponse(val horario: HorarioDto)
+
+@Serializable
+data class RequestPayoutResponse(
+    val ok: Boolean,
+    @SerialName("monto_solicitado") val montoSolicitado: Double = 0.0,
+    val mensaje: String,
+)
+
+// ── Health Profile ────────────────────────────────────────────────────────────
+
+@Serializable
+data class HealthProfileDto(
+    val id: String? = null,
+    @SerialName("patient_id") val patientId: String? = null,
+    // Embarazo
+    @SerialName("pregnancy_status") val pregnancyStatus: String? = null, // "no"|"yes"|"unknown"
+    val trimester: Int? = null,
+    // Cardíaco
+    @SerialName("cardiac_condition") val cardiacCondition: Boolean? = null,
+    @SerialName("cardiac_detail") val cardiacDetail: String? = null,
+    // Bifosfonatos
+    @SerialName("takes_bisphosphonates") val takesBisphosphonates: Boolean? = null,
+    @SerialName("bisphosphonate_name") val bisphosphonateName: String? = null,
+    @SerialName("bisphosphonate_route") val bisphosphonateRoute: String? = null, // "oral"|"iv"
+    // Renal / Hepático
+    @SerialName("renal_insufficiency") val renalInsufficiency: Boolean? = null,
+    @SerialName("hepatic_insufficiency") val hepaticInsufficiency: Boolean? = null,
+    // Hematológico
+    val hemophilia: Boolean? = null,
+    val pacemaker: Boolean? = null,
+    // Infeccioso / Oncológico
+    @SerialName("hiv_status") val hivStatus: Boolean? = null,
+    @SerialName("oncology_active") val oncologyActive: Boolean? = null,
+    @SerialName("oncology_type") val oncologyType: String? = null,
+    // Neurológico / GI
+    val epilepsy: Boolean? = null,
+    @SerialName("eating_disorder") val eatingDisorder: Boolean? = null,
+    val gerd: Boolean? = null,
+    val sjogren: Boolean? = null,
+    // Medicamentos y hábitos
+    @SerialName("systemic_meds") val systemicMeds: String? = null,
+    @SerialName("brushing_freq") val brushingFreq: Int? = null,
+    @SerialName("age_range") val ageRange: String? = null,
+    @SerialName("tobacco_type") val tobaccoType: String? = null,
+    @SerialName("tobacco_freq") val tobaccoFreq: String? = null,
+    @SerialName("dental_anxiety") val dentalAnxiety: Boolean? = null,
+    @SerialName("uses_floss") val usesFloss: Boolean? = null,
+    @SerialName("uses_mouthwash") val usesMouthwash: Boolean? = null,
+    // Meta
+    @SerialName("onboarding_complete") val onboardingComplete: Boolean? = null,
+    @SerialName("profile_completeness") val profileCompleteness: Int? = null,
+)
+
+@Serializable
+data class HealthProfileResponse(
+    val profile: HealthProfileDto? = null,
+    val completeness: Int = 0,
+)
+
+// ── Historial Citas (Patient) ─────────────────────────────────────────────────
+
+@Serializable
+data class AppointmentCancelResponse(
+    val id: String,
+    val status: String,
+    val message: String? = null,
+)
+
+// ── Notificaciones ────────────────────────────────────────────────────────────
+
+@Serializable
+data class NotificationDto(
+    val id: String,
+    val tipo: String,
+    val mensaje: String,
+    val visto: Boolean = false,
+    @SerialName("created_at") val createdAt: String,
+)
+
+@Serializable
+data class NotificationsResponse(val notifications: List<NotificationDto>)
+
+// ── Stripe Connect ────────────────────────────────────────────────────────────
+
+@Serializable
+data class StripeConnectCreateResponse(
+    @SerialName("onboardingUrl") val onboardingUrl: String? = null,
+    @SerialName("accountId") val accountId: String? = null,
+    val status: String? = null,
+    val message: String? = null,
+)
+
+@Serializable
+data class StripeConnectStatusResponse(
+    val status: String,                                // pending | pending_verification | active
+    @SerialName("charges_enabled") val chargesEnabled: Boolean = false,
+    @SerialName("payouts_enabled") val payoutsEnabled: Boolean = false,
+    @SerialName("detailsSubmitted") val detailsSubmitted: Boolean = false,
+)
+
+// ── Onboarding conversacional ─────────────────────────────────────────────────
+
+@Serializable
+data class OnboardingRequest(
+    val country: String? = null,
+    @SerialName("last_visit") val lastVisit: String? = null,
+    @SerialName("medical_conditions") val medicalConditions: String? = null,
+    val role: String? = null,
+)

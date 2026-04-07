@@ -47,4 +47,14 @@ class AiRepository @Inject constructor(private val api: ApiService) {
             Result.Error("Sin conexión. Verifica tu internet.")
         }
     }
+
+    suspend fun submitFeedback(request: AiFeedbackRequest): Result<AiFeedbackResponse> {
+        return try {
+            val res = api.submitAiFeedback(request)
+            if (res.isSuccessful) Result.Success(res.body()!!)
+            else Result.Error("Error al enviar feedback.")
+        } catch (e: Exception) {
+            Result.Error("Sin conexión.")
+        }
+    }
 }

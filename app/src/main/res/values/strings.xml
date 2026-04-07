@@ -3,4 +3,29 @@
     <string name="app_name">DentApp</string>
     <!-- Replace with your OAuth 2.0 Web Client ID from Firebase Console > Authentication > Sign-in method > Google > Web client ID -->
     <string name="google_web_client_id">YOUR_WEB_CLIENT_ID.apps.googleusercontent.com</string>
+
+    <!-- ── Sprint 3 — i18n prep (base español, listo para values-en/ en v2) ── -->
+    <string name="ai_disclaimer">Orientación dental — no reemplaza diagnóstico profesional</string>
+    <string name="compartir_expediente">Compartir expediente</string>
+    <string name="generar_qr">Generar QR</string>
+    <string name="vigencia_enlace">Vigencia del enlace</string>
+    <string name="regenerar_qr">Regenerar QR</string>
+    <string name="compartir_enlace">Compartir enlace</string>
+    <string name="disclaimer_qr">Solo compartes tu información dental. Email, contraseña y datos bancarios nunca se incluyen.</string>
+    <string name="escanear_receta">Escanear receta</string>
+    <string name="tomar_foto">📷 Tomar foto</string>
+    <string name="elegir_galeria">🖼️ Elegir de galería</string>
+    <string name="leyendo_receta">Leyendo tu receta con IA… 💊</string>
+    <string name="capturar_radiografia">Capturar radiografía</string>
+    <string name="analizando_placa">Analizando tu placa… 🦷</string>
+    <string name="planes_dentapp">Planes DentApp</string>
+    <string name="empezar_trial">Empezar 14 días gratis</string>
+    <string name="ahorra_anual">Ahorra 33% con el plan anual</string>
+    <string name="mis_puntos">Mis puntos</string>
+    <string name="fue_util">¿Te fue útil?</string>
+    <string name="pais_colombia">Colombia</string>
+    <string name="pais_ecuador">Ecuador</string>
+    <string name="pais_mexico">México</string>
+    <string name="pais_eeuu">Estados Unidos</string>
+    <string name="pais_otro">Otro</string>
 </resources>
