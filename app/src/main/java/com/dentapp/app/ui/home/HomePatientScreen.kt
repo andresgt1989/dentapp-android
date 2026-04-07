@@ -1,13 +1,11 @@
 package com.dentapp.app.ui.home
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -17,6 +15,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dentapp.app.data.model.AppointmentDto
-import com.dentapp.app.data.model.ClinicalAlert
 import com.dentapp.app.data.model.DoctorDto
 import com.dentapp.app.ui.tratamiento.TratamientoDto
 import com.dentapp.app.ui.tratamiento.TratamientoCard
@@ -37,7 +36,6 @@ import com.dentapp.app.ui.theme.*
 // HomePatientScreen
 // ─────────────────────────────────────────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePatientScreen(
     onLogout: () -> Unit,
@@ -65,49 +63,11 @@ fun HomePatientScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("🦷", style = MaterialTheme.typography.titleLarge)
-                        Spacer(Modifier.width(8.dp))
-                        Text("DentApp", style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Primary,
-                    titleContentColor = White,
-                ),
-                actions = {
-                    IconButton(onClick = onLogout) {
-                        Icon(Icons.Outlined.Logout, "Cerrar sesión", tint = White)
-                    }
-                },
-            )
-        },
         bottomBar = {
-            NavigationBar(containerColor = White, tonalElevation = 8.dp) {
-                val tabs = listOf(
-                    Triple("Inicio", Icons.Outlined.Home, 0),
-                    Triple("Doctores", Icons.Outlined.Search, 1),
-                    Triple("Citas", Icons.Outlined.CalendarMonth, 2),
-                    Triple("Perfil", Icons.Outlined.Person, 3),
-                )
-                tabs.forEach { (label, icon, idx) ->
-                    NavigationBarItem(
-                        selected = selectedTab == idx,
-                        onClick = { selectedTab = idx },
-                        icon = { Icon(icon, label) },
-                        label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Primary,
-                            selectedTextColor = Primary,
-                            indicatorColor = PrimaryLight,
-                        ),
-                    )
-                }
-            }
+            PremiumNavBar(
+                selectedTab = selectedTab,
+                onTabSelected = { selectedTab = it },
+            )
         },
         containerColor = Background,
     ) { padding ->
@@ -118,6 +78,7 @@ fun HomePatientScreen(
                 onSearchDoctors = { selectedTab = 1 },
                 onSendUrgencia = { desc -> viewModel.sendUrgencia(desc) },
                 onOpenTratamientos = onOpenTratamientos,
+                onOpenBooking = onOpenBooking,
                 modifier = Modifier.padding(padding),
             )
             1 -> DoctoresTab(
@@ -153,6 +114,114 @@ fun HomePatientScreen(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Premium Bottom Navigation Bar
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun PremiumNavBar(
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit,
+) {
+    val tabs = listOf(
+        Triple("Inicio", Icons.Outlined.Home, 0),
+        Triple("Doctores", Icons.Outlined.Search, 1),
+        Triple("Citas", Icons.Outlined.CalendarMonth, 2),
+        Triple("Perfil", Icons.Outlined.Person, 3),
+    )
+
+    Surface(
+        color = SurfaceWhite,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .drawWithContent {
+                    drawContent()
+                    drawLine(
+                        color = SurfaceGray,
+                        start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                        end = androidx.compose.ui.geometry.Offset(size.width, 0f),
+                        strokeWidth = 1f,
+                    )
+                },
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp)
+                    .navigationBarsPadding()
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                tabs.forEach { (label, icon, idx) ->
+                    NavBarItem(
+                        label = label,
+                        icon = icon,
+                        selected = selectedTab == idx,
+                        onClick = { onTabSelected(idx) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NavBarItem(
+    label: String,
+    icon: ImageVector,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scale by animateFloatAsState(
+        targetValue = if (selected) 1f else 0.92f,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
+        label = "navScale",
+    )
+
+    Column(
+        modifier = modifier
+            .clickable(
+                indication = null,
+                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                onClick = onClick,
+            )
+            .scale(scale),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .height(32.dp)
+                .defaultMinSize(minWidth = 56.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(
+                    if (selected) TealLight.copy(alpha = 0.30f) else Color.Transparent
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = if (selected) TealPrimary else TextTertiary,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+        Spacer(Modifier.height(2.dp))
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (selected) TealPrimary else TextTertiary,
+        )
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Tab: Inicio
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -163,6 +232,7 @@ private fun InicioTab(
     onSearchDoctors: () -> Unit,
     onSendUrgencia: (String) -> Unit,
     onOpenTratamientos: () -> Unit = {},
+    onOpenBooking: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     var showUrgenciaDialog by remember { mutableStateOf(false) }
@@ -182,6 +252,11 @@ private fun InicioTab(
                         onValueChange = { urgenciaDesc = it },
                         label = { Text("Ej: Dolor fuerte en molar, sangrado...") },
                         maxLines = 3,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = TealPrimary,
+                            focusedLabelColor = TealPrimary,
+                        ),
                     )
                 }
             },
@@ -192,7 +267,8 @@ private fun InicioTab(
                         showUrgenciaDialog = false
                         urgenciaDesc = ""
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
+                    colors = ButtonDefaults.buttonColors(containerColor = AlertRed),
+                    shape = RoundedCornerShape(12.dp),
                 ) {
                     Text("Enviar urgencia")
                 }
@@ -205,246 +281,301 @@ private fun InicioTab(
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // ── Banner alerta CRITICA (si existe) → abre AI Manager ────────────
+        // ── Header — greeting row ──────────────────────────────────────────────
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Avatar circular con iniciales y gradiente
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(Brush.linearGradient(listOf(GradientStart, GradientEnd))),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = state.patientName.firstOrNull()?.uppercase() ?: "P",
+                        color = White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = "Hola, ${state.patientName.ifBlank { "Bienvenido" }}",
+                        color = TextPrimary,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = "¿Cómo estás hoy?",
+                        color = TextSecondary,
+                        fontSize = 13.sp,
+                    )
+                }
+                IconButton(onClick = {}) {
+                    Icon(
+                        Icons.Outlined.Notifications,
+                        contentDescription = "Notificaciones",
+                        tint = TextSecondary,
+                    )
+                }
+            }
+        }
+
+        // ── Hero Card (gradiente) ──────────────────────────────────────────────
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Brush.linearGradient(listOf(GradientStart, GradientEnd)))
+                    .defaultMinSize(minHeight = 140.dp)
+                    .padding(20.dp),
+            ) {
+                // Círculos decorativos sutiles en esquina derecha
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .offset(x = 60.dp, y = (-20).dp)
+                        .align(Alignment.TopEnd)
+                        .clip(CircleShape)
+                        .background(White.copy(alpha = 0.05f)),
+                )
+                Box(
+                    modifier = Modifier
+                        .size(70.dp)
+                        .offset(x = 30.dp, y = 20.dp)
+                        .align(Alignment.TopEnd)
+                        .clip(CircleShape)
+                        .background(White.copy(alpha = 0.05f)),
+                )
+
+                Column {
+                    Text(
+                        text = "¿Cómo está tu salud dental hoy?",
+                        color = White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 28.sp,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Tu asistente dental está listo",
+                        color = White.copy(alpha = 0.70f),
+                        fontSize = 14.sp,
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    // Quick action chips
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf("Tengo dolor", "Ver tratamiento", "Medicación").forEach { chip ->
+                            HeroChip(text = chip, onClick = onOpenAiManager)
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── Alertas críticas ───────────────────────────────────────────────────
         if (state.criticalAlerts.isNotEmpty()) {
             item {
                 val alert = state.criticalAlerts.first()
-                Card(
-                    onClick = onOpenAiManager,
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
-                    border = BorderStroke(1.5.dp, Color(0xFFD32F2F)),
-                    modifier = Modifier.fillMaxWidth(),
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(CoralLight)
+                        .clickable(onClick = onOpenAiManager),
                 ) {
                     Row(
                         modifier = Modifier.padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
+                        Box(
+                            modifier = Modifier
+                                .width(4.dp)
+                                .height(44.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(CoralAccent),
+                        )
                         Text("🚨", fontSize = 20.sp)
                         Column(Modifier.weight(1f)) {
                             Text(
                                 "Alerta clínica importante",
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFD32F2F),
+                                color = AlertRed,
                                 fontSize = 13.sp,
                             )
                             Text(
                                 alert.mensaje,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFFB71C1C),
+                                color = AlertRed.copy(alpha = 0.8f),
                                 maxLines = 2,
                             )
                         }
-                        Icon(Icons.Outlined.ChevronRight, null, tint = Color(0xFFD32F2F))
+                        Icon(Icons.Outlined.ChevronRight, null, tint = AlertRed)
                     }
                 }
             }
         }
 
-        // Bienvenida
+        // ── Acciones rápidas — grid 3 columnas ────────────────────────────────
         item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(
-                        Brush.horizontalGradient(listOf(Primary, Secondary))
-                    )
-                    .padding(20.dp)
-            ) {
-                Column {
-                    Text("Hola 👋", style = MaterialTheme.typography.labelLarge,
-                        color = White.copy(alpha = 0.8f))
-                    Text(
-                        state.patientName.ifBlank { "Bienvenido" },
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = White,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text("¿Cómo está tu salud dental hoy?",
-                        style = MaterialTheme.typography.bodyMedium, color = White.copy(0.85f))
-                }
-            }
-        }
-
-        // BookNow Banner — primary CTA
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1565C0)),
-                elevation = CardDefaults.cardElevation(4.dp),
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            "Agenda tu cita ahora",
-                            color = White,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Text(
-                            "Doctores disponibles hoy",
-                            color = White.copy(alpha = 0.82f),
-                            fontSize = 13.sp,
-                        )
-                    }
-                    Spacer(Modifier.width(12.dp))
-                    Button(
-                        onClick = onSearchDoctors,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = White),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    ) {
-                        Text(
-                            "Ver doctores",
-                            color = Color(0xFF1565C0),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                        )
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                Text(
+                    "Acciones rápidas",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                )
+                Spacer(Modifier.height(12.dp))
+                val actions = listOf(
+                    Triple("Buscar doctor",  Icons.Outlined.Search,          TealPrimary),
+                    Triple("Mis citas",      Icons.Outlined.CalendarMonth,   Color(0xFF3B82F6)),
+                    Triple("AI Chat",        Icons.Outlined.Psychology,       Color(0xFF8B5CF6)),
+                    Triple("Mis Rx",         Icons.Outlined.MedicalServices,  AlertAmber),
+                    Triple("Urgencia",       Icons.Outlined.LocalHospital,    CoralAccent),
+                    Triple("Puntos",         Icons.Outlined.Stars,            SuccessGreen),
+                )
+                val rows = actions.chunked(3)
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    rows.forEach { row ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            row.forEach { (label, icon, color) ->
+                                QuickActionCard(
+                                    icon = icon,
+                                    label = label,
+                                    color = color,
+                                    onClick = when (label) {
+                                        "Buscar doctor" -> onSearchDoctors
+                                        "AI Chat"       -> onOpenAiManager
+                                        "Urgencia"      -> { { showUrgenciaDialog = true } }
+                                        else            -> { {} }
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                            // Fill remaining cells if row is incomplete
+                            repeat(3 - row.size) {
+                                Spacer(Modifier.weight(1f))
+                            }
+                        }
                     }
                 }
             }
         }
 
-        // AI Manager CTA
-        item {
-            Card(
-                onClick = onOpenAiManager,
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F7FF)),
-                elevation = CardDefaults.cardElevation(2.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .clip(CircleShape)
-                            .background(Primary),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text("🤖", style = MaterialTheme.typography.titleLarge)
-                    }
-                    Spacer(Modifier.width(14.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text("AI Manager Dental", style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold, color = DentTextPrimary)
-                        Text("Consulta síntomas, medicación y post-op",
-                            style = MaterialTheme.typography.bodySmall, color = DentTextSecond)
-                    }
-                    Icon(Icons.Outlined.ChevronRight, null, tint = Primary)
-                }
-            }
-        }
-
-        // ── Mis tratamientos (si tiene activos) ─────────────────────────────
+        // ── Mis tratamientos ───────────────────────────────────────────────────
         if (state.tratamientos.isNotEmpty()) {
             item {
-                Text(
-                    "Mis tratamientos",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = DentTextPrimary,
-                )
-            }
-            items(state.tratamientos.take(2), key = { "trat_${it.id}" }) { t ->
-                TratamientoCard(tratamiento = t, onClick = onOpenTratamientos)
-            }
-            if (state.tratamientos.size > 2) {
-                item {
-                    TextButton(onClick = onOpenTratamientos, modifier = Modifier.fillMaxWidth()) {
-                        Text("Ver todos los tratamientos →", color = Primary)
-                    }
-                }
-            }
-        }
-
-        // Urgencia
-        item {
-            Card(
-                onClick = { showUrgenciaDialog = true },
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
-                border = BorderStroke(2.dp, Color(0xFFD32F2F)),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
                 Row(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("🚨", style = MaterialTheme.typography.titleLarge)
-                    Spacer(Modifier.width(12.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            "URGENCIA DENTAL",
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFD32F2F),
-                        )
-                        Text(
-                            "Notifica a doctores disponibles ahora",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = DentTextSecond,
-                        )
+                    Text(
+                        "Mis tratamientos",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary,
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(onClick = onOpenTratamientos) {
+                        Text("Ver todos", color = TealPrimary, fontSize = 13.sp)
                     }
-                    Icon(Icons.Outlined.ChevronRight, null, tint = Color(0xFFD32F2F))
+                }
+            }
+            item {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    items(state.tratamientos, key = { "trat_${it.id}" }) { t ->
+                        TreatmentMiniCard(tratamiento = t, onClick = onOpenTratamientos)
+                    }
                 }
             }
         }
 
-        // Acciones rápidas
-        item {
-            Text("Acciones rápidas", style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold, color = DentTextPrimary)
-        }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                QuickActionCard(
-                    icon = Icons.Outlined.Search,
-                    label = "Buscar doctor",
-                    color = Color(0xFF1565C0),
-                    onClick = onSearchDoctors,
-                    modifier = Modifier.weight(1f),
-                )
-                QuickActionCard(
-                    icon = Icons.Outlined.CalendarMonth,
-                    label = "Mis citas",
-                    color = Color(0xFF2E7D32),
-                    onClick = {},
-                    modifier = Modifier.weight(1f),
-                )
-                QuickActionCard(
-                    icon = Icons.Outlined.Psychology,
-                    label = "AI Chat",
-                    color = Color(0xFF6A1B9A),
-                    onClick = onOpenAiManager,
-                    modifier = Modifier.weight(1f),
-                )
+        // ── Doctores disponibles ───────────────────────────────────────────────
+        if (state.doctors.isNotEmpty()) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Doctores disponibles",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(50.dp),
+                        color = TealLight.copy(alpha = 0.40f),
+                    ) {
+                        Text(
+                            "Tu ciudad",
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            color = TealDark,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
+                }
+            }
+            item {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    items(state.doctors.take(6), key = { it.id }) { doctor ->
+                        DoctorMiniCard(
+                            doctor = doctor,
+                            onClick = { onOpenBooking(doctor.id, doctor.fullName) },
+                        )
+                    }
+                }
             }
         }
 
-        // Próxima cita
+        // ── Próxima cita ───────────────────────────────────────────────────────
         if (state.appointments.isNotEmpty()) {
-            item {
-                Text("Próxima cita", style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold, color = DentTextPrimary)
-            }
-            item {
-                val proxima = state.appointments.firstOrNull { it.status == "confirmed" || it.status == "pending" }
-                if (proxima != null) {
-                    AppointmentCard(proxima)
+            val proxima = state.appointments.firstOrNull { it.status == "confirmed" || it.status == "pending" }
+            if (proxima != null) {
+                item {
+                    Text(
+                        "Próxima cita",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                }
+                item {
+                    AppointmentCard(
+                        appointment = proxima,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
                 }
             }
         }
@@ -453,8 +584,213 @@ private fun InicioTab(
     }
 }
 
+// ── Hero chip ─────────────────────────────────────────────────────────────────
+
+@Composable
+private fun HeroChip(text: String, onClick: () -> Unit) {
+    val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    Surface(
+        shape = RoundedCornerShape(50.dp),
+        color = White.copy(alpha = 0.20f),
+        border = BorderStroke(1.dp, White.copy(alpha = 0.40f)),
+        modifier = Modifier.clickable(
+            interactionSource = interactionSource,
+            indication = null,
+            onClick = onClick,
+        ),
+    ) {
+        Text(
+            text = text,
+            color = White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+        )
+    }
+}
+
+// ── Quick action card (3-col grid item) ───────────────────────────────────────
+
+@Composable
+private fun QuickActionCard(
+    icon: ImageVector,
+    label: String,
+    color: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
+        label = "qaScale",
+    )
+
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = BorderStroke(1.dp, SurfaceGray),
+        modifier = modifier.scale(scale),
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(color.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, label, tint = color, modifier = Modifier.size(24.dp))
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                label,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+// ── Treatment mini card (horizontal scroll) ───────────────────────────────────
+
+@Composable
+private fun TreatmentMiniCard(tratamiento: TratamientoDto, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = BorderStroke(1.dp, SurfaceGray),
+        modifier = Modifier.width(160.dp),
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(TealPrimary.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Outlined.MedicalServices,
+                    null,
+                    tint = TealPrimary,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = tratamiento.tipo,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = tratamiento.faseActual ?: "En progreso",
+                fontSize = 11.sp,
+                color = TextSecondary,
+                maxLines = 1,
+            )
+            Spacer(Modifier.height(10.dp))
+            val progress = (tratamiento.fasesCompletadas.toFloat() / tratamiento.totalFases.toFloat().coerceAtLeast(1f))
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(5.dp)
+                    .clip(RoundedCornerShape(3.dp)),
+                color = TealPrimary,
+                trackColor = TealLight.copy(alpha = 0.40f),
+            )
+        }
+    }
+}
+
+// ── Doctor mini card (horizontal scroll) ──────────────────────────────────────
+
+@Composable
+private fun DoctorMiniCard(doctor: DoctorDto, onClick: () -> Unit) {
+    val hash      = doctor.id.hashCode().and(0x7FFFFFFF)
+    val rating    = 4.7f + (hash % 3) * 0.1f
+    val ratingStr = "%.1f".format(rating)
+
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = BorderStroke(1.dp, SurfaceGray),
+        modifier = Modifier.width(200.dp),
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(Brush.linearGradient(listOf(GradientStart, GradientEnd))),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    doctor.fullName.firstOrNull()?.uppercase() ?: "D",
+                    color = White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Spacer(Modifier.height(10.dp))
+            Text(
+                doctor.fullName,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                doctor.specialty,
+                fontSize = 12.sp,
+                color = TextSecondary,
+                maxLines = 1,
+            )
+            Spacer(Modifier.height(8.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text("★", color = AlertAmber, fontSize = 13.sp)
+                Text(ratingStr, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                if (doctor.isAvailable) {
+                    Spacer(Modifier.width(4.dp))
+                    Box(
+                        Modifier
+                            .size(6.dp)
+                            .clip(CircleShape)
+                            .background(SuccessGreen),
+                    )
+                    Text("Disponible", fontSize = 11.sp, color = SuccessGreen)
+                }
+            }
+        }
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Tab: Doctores / Marketplace
+// Tab: Doctores
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -466,36 +802,70 @@ private fun DoctoresTab(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        // Barra de búsqueda (UI only por ahora)
-        Surface(shadowElevation = 2.dp) {
+        // Barra de búsqueda premium
+        Card(
+            shape = RoundedCornerShape(0.dp),
+            colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+            elevation = CardDefaults.cardElevation(0.dp),
+            border = BorderStroke(width = 0.dp, color = Color.Transparent),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Outlined.Search, null, tint = DentTextSecond, modifier = Modifier.size(20.dp))
+                Text(
+                    "Doctores",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 12.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(SurfaceGray)
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Outlined.Search, null, tint = TextTertiary, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Busca por especialidad o nombre...",
-                    style = MaterialTheme.typography.bodyMedium, color = DentTextSecond)
+                Text(
+                    "Busca por especialidad o nombre...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextTertiary,
+                )
             }
         }
 
         if (isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Primary)
+                CircularProgressIndicator(color = TealPrimary)
             }
         } else if (doctors.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("🦷", style = MaterialTheme.typography.displayMedium)
                     Spacer(Modifier.height(8.dp))
-                    Text("No hay doctores disponibles", color = DentTextSecond)
+                    Text("No hay doctores disponibles", color = TextSecondary)
                     Spacer(Modifier.height(12.dp))
-                    OutlinedButton(onClick = onRefresh) { Text("Reintentar") }
+                    OutlinedButton(
+                        onClick = onRefresh,
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.5.dp, TealPrimary),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = TealPrimary),
+                    ) { Text("Reintentar") }
                 }
             }
         } else {
             LazyColumn(
-                contentPadding = PaddingValues(12.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 items(doctors, key = { it.id }) { doctor ->
@@ -520,55 +890,74 @@ private fun CitasTab(
     onOpenAiManager: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
-        Text("Mis citas", style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold, color = DentTextPrimary)
-        Spacer(Modifier.height(16.dp))
+    Column(modifier = modifier.fillMaxSize()) {
+        // Header
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(SurfaceWhite)
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+        ) {
+            Text(
+                "Mis citas",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary,
+            )
+        }
 
         if (isLoading) {
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Primary)
+            Box(Modifier.fillMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = TealPrimary)
             }
         } else if (appointments.isEmpty()) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 40.dp, start = 24.dp, end = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text("🦷", fontSize = 56.sp)
                 Spacer(Modifier.height(16.dp))
                 Text(
                     "Agenda tu primera cita",
-                    style = MaterialTheme.typography.titleLarge,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DentTextPrimary,
+                    color = TextPrimary,
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "Consulta desde $20 · Pago seguro online",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = DentTextSecond,
+                    "Consulta desde \$20 · Pago seguro online",
+                    fontSize = 14.sp,
+                    color = TextSecondary,
                 )
                 Spacer(Modifier.height(24.dp))
-                Button(
-                    onClick = onSearchDoctors,
-                    modifier = Modifier.fillMaxWidth(0.8f).height(52.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Brush.linearGradient(listOf(GradientStart, GradientEnd)))
+                        .clickable(onClick = onSearchDoctors),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Text("Buscar doctor ahora", color = White,
-                        fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Buscar doctor ahora", color = White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(12.dp))
                 TextButton(onClick = onOpenAiManager) {
                     Text(
                         "¿Tienes síntomas? Consulta al AI gratis →",
-                        color = Primary,
+                        color = TealPrimary,
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
             }
         } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            LazyColumn(
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
                 items(appointments, key = { it.id }) { appt ->
                     AppointmentCard(appt)
                 }
@@ -597,116 +986,156 @@ private fun PerfilTab(
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        // Avatar + nombre
+        // ── Gradient header card ───────────────────────────────────────────────
         item {
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = White),
-                elevation = CardDefaults.cardElevation(2.dp),
-                modifier = Modifier.fillMaxWidth(),
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .background(Brush.linearGradient(listOf(GradientStart, GradientEnd)))
+                    .padding(24.dp),
             ) {
-                Row(
-                    modifier = Modifier.padding(20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    // Avatar
                     Box(
                         modifier = Modifier
-                            .size(60.dp)
+                            .size(80.dp)
                             .clip(CircleShape)
-                            .background(PrimaryLight),
+                            .border(3.dp, White, CircleShape)
+                            .background(White.copy(alpha = 0.25f)),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            patientName.firstOrNull()?.uppercase() ?: "P",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = Primary,
+                            text = patientName.firstOrNull()?.uppercase() ?: "P",
+                            color = White,
+                            fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
                         )
                     }
-                    Spacer(Modifier.width(16.dp))
-                    Column {
-                        Text(patientName.ifBlank { "Paciente" },
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold, color = DentTextPrimary)
-                        Text(email, style = MaterialTheme.typography.bodySmall, color = DentTextSecond)
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        patientName.ifBlank { "Paciente" },
+                        color = White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Surface(
+                            shape = RoundedCornerShape(50.dp),
+                            color = White.copy(alpha = 0.20f),
+                        ) {
+                            Text(
+                                "Paciente",
+                                color = White,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            )
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(50.dp),
+                            color = CoralAccent.copy(alpha = 0.85f),
+                        ) {
+                            Text(
+                                "★ 120 pts",
+                                color = White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            )
+                        }
                     }
                 }
             }
         }
 
-        // ── Opciones de perfil ──────────────────────────────────────────────
-        item { PerfilMenuRow(Icons.Outlined.Person, "Mis datos", "Ver y editar perfil", onOpenMisDatos) }
+        // ── Menu items ─────────────────────────────────────────────────────────
+        item { Spacer(Modifier.height(4.dp)) }
+
         item {
-            PerfilMenuRow(
+            PerfilMenuCard(
+                icon = Icons.Outlined.Person,
+                iconColor = TealPrimary,
+                titulo = "Mis datos",
+                subtitulo = "Ver y editar tu perfil",
+                onClick = onOpenMisDatos,
+            )
+        }
+        item {
+            PerfilMenuCard(
                 icon = Icons.Outlined.FolderOpen,
+                iconColor = Color(0xFF3B82F6),
                 titulo = "Mi Expediente Dental",
                 subtitulo = "Historial de procedimientos",
                 onClick = onOpenExpediente,
             )
         }
         item {
-            PerfilMenuRow(
+            PerfilMenuCard(
                 icon = Icons.Outlined.HealthAndSafety,
+                iconColor = Color(0xFF8B5CF6),
                 titulo = "Historial médico",
                 subtitulo = "Condiciones sistémicas y alergias",
-                onClick = onOpenHistorialMedico,
                 badge = "IA",
-                badgeColor = Color(0xFF5C6BC0),
+                badgeColor = Color(0xFF8B5CF6),
+                onClick = onOpenHistorialMedico,
             )
         }
         item {
-            PerfilMenuRow(
+            PerfilMenuCard(
                 icon = Icons.Outlined.MedicalServices,
+                iconColor = AlertAmber,
                 titulo = "Mis tratamientos",
                 subtitulo = "Endodoncia, ortodoncia, implantes…",
                 onClick = onOpenTratamientos,
             )
         }
         item {
-            PerfilMenuRow(
+            PerfilMenuCard(
                 icon = Icons.Outlined.CalendarMonth,
+                iconColor = SuccessGreen,
                 titulo = "Historial de citas",
                 subtitulo = "Ver y cancelar citas",
                 onClick = onOpenHistorialCitas,
             )
         }
         item {
-            PerfilMenuRow(
+            PerfilMenuCard(
                 icon = Icons.Outlined.Notifications,
+                iconColor = Color(0xFFF97316),
                 titulo = "Notificaciones",
                 subtitulo = "Recordatorios y alertas",
                 onClick = onOpenNotificaciones,
             )
         }
         item {
-            PerfilMenuRow(
+            PerfilMenuCard(
                 icon = Icons.Outlined.Security,
+                iconColor = TextSecondary,
                 titulo = "Privacidad y seguridad",
                 subtitulo = "Datos, QR compartidos y cuenta",
                 onClick = onOpenPrivacidad,
             )
         }
 
-        // ── Cerrar sesión ───────────────────────────────────────────────────
+        // ── Cerrar sesión ──────────────────────────────────────────────────────
         item {
-            Card(
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF5F5)),
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(onClick = onLogout),
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(AlertRedLight)
+                    .clickable(onClick = onLogout)
+                    .padding(16.dp),
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Outlined.Logout, null, tint = ErrorRed)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.Logout, null, tint = AlertRed)
                     Spacer(Modifier.width(12.dp))
-                    Text("Cerrar sesión", color = ErrorRed,
-                        style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                    Text("Cerrar sesión", color = AlertRed, fontWeight = FontWeight.Medium)
                 }
             }
         }
@@ -715,35 +1144,50 @@ private fun PerfilTab(
 }
 
 @Composable
-private fun PerfilMenuRow(
+private fun PerfilMenuCard(
     icon: ImageVector,
+    iconColor: Color,
     titulo: String,
     subtitulo: String,
     onClick: () -> Unit,
     badge: String? = null,
-    badgeColor: Color = Primary,
+    badgeColor: Color = TealPrimary,
 ) {
     Card(
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = White),
-        elevation = CardDefaults.cardElevation(1.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = BorderStroke(1.dp, SurfaceGray),
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 16.dp)
             .clickable(onClick = onClick),
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(icon, contentDescription = null, tint = Primary, modifier = Modifier.size(22.dp))
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(iconColor.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, null, tint = iconColor, modifier = Modifier.size(24.dp))
+            }
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Text(titulo, style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium, color = DentTextPrimary)
+                    Text(
+                        titulo,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary,
+                    )
                     if (badge != null) {
                         Surface(
                             shape = RoundedCornerShape(20.dp),
@@ -759,55 +1203,19 @@ private fun PerfilMenuRow(
                         }
                     }
                 }
-                Text(subtitulo, style = MaterialTheme.typography.bodySmall, color = DentTextSecond)
+                Text(subtitulo, fontSize = 13.sp, color = TextSecondary)
             }
-            Icon(Icons.Outlined.ChevronRight, null, tint = DentTextSecond, modifier = Modifier.size(18.dp))
+            Icon(Icons.Outlined.ChevronRight, null, tint = TextTertiary, modifier = Modifier.size(18.dp))
         }
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Componentes reutilizables
+// Shared card components
 // ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun QuickActionCard(
-    icon: ImageVector,
-    label: String,
-    color: Color,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        onClick = onClick,
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = White),
-        elevation = CardDefaults.cardElevation(2.dp),
-        modifier = modifier,
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(color.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(icon, label, tint = color, modifier = Modifier.size(22.dp))
-            }
-            Spacer(Modifier.height(6.dp))
-            Text(label, style = MaterialTheme.typography.labelSmall,
-                color = DentTextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-    }
-}
 
 @Composable
 private fun DoctorCard(doctor: DoctorDto, onClick: () -> Unit = {}) {
-    // Deterministic values from doctor.id hash for visual variety without backend changes
     val hash      = doctor.id.hashCode().and(0x7FFFFFFF)
     val rating    = 4.7f + (hash % 3) * 0.1f
     val ratingStr = "%.1f".format(rating)
@@ -820,95 +1228,72 @@ private fun DoctorCard(doctor: DoctorDto, onClick: () -> Unit = {}) {
     }
 
     Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = White),
-        elevation = CardDefaults.cardElevation(2.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = BorderStroke(1.dp, SurfaceGray),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 Box(
                     modifier = Modifier
                         .size(52.dp)
                         .clip(CircleShape)
-                        .background(PrimaryLight),
+                        .background(Brush.linearGradient(listOf(GradientStart, GradientEnd))),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         doctor.fullName.firstOrNull()?.uppercase() ?: "D",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Primary, fontWeight = FontWeight.Bold,
+                        color = White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
                     )
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
                         doctor.fullName,
-                        style = MaterialTheme.typography.bodyLarge,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = DentTextPrimary,
+                        color = TextPrimary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Text(
-                        doctor.specialty,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = DentTextSecond,
-                    )
+                    Text(doctor.specialty, fontSize = 13.sp, color = TextSecondary)
                     Spacer(Modifier.height(6.dp))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        // Rating
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.dp),
-                        ) {
-                            Text("⭐", fontSize = 11.sp)
-                            Text(ratingStr, style = MaterialTheme.typography.labelSmall,
-                                color = DentTextPrimary, fontWeight = FontWeight.Bold)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text("★", color = AlertAmber, fontSize = 12.sp)
+                            Text(ratingStr, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                         }
-                        // Availability dot + time
                         if (doctor.isAvailable) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
-                                Box(
-                                    Modifier.size(7.dp).clip(CircleShape)
-                                        .background(Color(0xFF2E7D32))
-                                )
-                                Text(
-                                    "Hoy $nextSlot",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color(0xFF2E7D32),
-                                    fontWeight = FontWeight.Medium,
-                                )
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Box(Modifier.size(7.dp).clip(CircleShape).background(SuccessGreen))
+                                Text("Hoy $nextSlot", fontSize = 11.sp, color = SuccessGreen, fontWeight = FontWeight.Medium)
                             }
                         }
                     }
                 }
             }
-            Spacer(Modifier.height(10.dp))
-            HorizontalDivider(color = Color(0xFFF1F5F9))
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(12.dp))
+            HorizontalDivider(color = SurfaceGray)
+            Spacer(Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    price,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = Primary,
-                    fontWeight = FontWeight.Bold,
-                )
-                Button(
-                    onClick = onClick,
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp),
+                Text(price, fontSize = 14.sp, color = TealPrimary, fontWeight = FontWeight.Bold)
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Brush.linearGradient(listOf(GradientStart, GradientEnd)))
+                        .clickable(onClick = onClick)
+                        .padding(horizontal = 20.dp, vertical = 8.dp),
                 ) {
                     Text("Agendar →", color = White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 }
@@ -918,69 +1303,61 @@ private fun DoctorCard(doctor: DoctorDto, onClick: () -> Unit = {}) {
 }
 
 @Composable
-private fun AppointmentCard(appointment: AppointmentDto) {
-    val (bgColor, statusLabel) = when (appointment.status) {
-        "confirmed" -> Pair(Color(0xFFE8F5E9), "Confirmada")
-        "pending"   -> Pair(Color(0xFFFFF8E1), "Pendiente")
-        "completed" -> Pair(Color(0xFFEEEEEE), "Completada")
-        "cancelled" -> Pair(Color(0xFFFFEBEE), "Cancelada")
-        else        -> Pair(DentGray, appointment.status)
+private fun AppointmentCard(
+    appointment: AppointmentDto,
+    modifier: Modifier = Modifier,
+) {
+    val (bgColor, statusLabel, statusColor) = when (appointment.status) {
+        "confirmed" -> Triple(Color(0xFFECFDF5), "Confirmada", SuccessGreen)
+        "pending"   -> Triple(AlertAmberLight,   "Pendiente",  AlertAmber)
+        "completed" -> Triple(SurfaceGray,        "Completada", TextSecondary)
+        "cancelled" -> Triple(AlertRedLight,      "Cancelada",  AlertRed)
+        else        -> Triple(SurfaceGray,        appointment.status, TextSecondary)
     }
 
     Card(
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = bgColor),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(Icons.Outlined.CalendarMonth, null, tint = Primary,
-                modifier = Modifier.size(28.dp))
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(appointment.doctorName ?: "Doctor", style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold, color = DentTextPrimary)
-                Text(appointment.specialty ?: "", style = MaterialTheme.typography.bodySmall,
-                    color = DentTextSecond)
-                Text(
-                    appointment.scheduledAt.take(10),
-                    style = MaterialTheme.typography.labelSmall, color = DentTextSecond,
-                )
-            }
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = White.copy(alpha = 0.7f),
-            ) {
-                Text(statusLabel, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall, color = DentTextPrimary)
-            }
-        }
-    }
-}
-
-@Composable
-private fun ProfileMenuItem(icon: ImageVector, title: String, subtitle: String) {
-    Card(
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = White),
-        elevation = CardDefaults.cardElevation(1.dp),
-        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = BorderStroke(1.dp, SurfaceGray),
+        modifier = modifier.fillMaxWidth(),
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(icon, null, tint = Primary, modifier = Modifier.size(24.dp))
-            Spacer(Modifier.width(14.dp))
-            Column(Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium, color = DentTextPrimary)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = DentTextSecond)
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(TealPrimary.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Outlined.CalendarMonth, null, tint = TealPrimary, modifier = Modifier.size(24.dp))
             }
-            Icon(Icons.Outlined.ChevronRight, null, tint = DentTextSecond,
-                modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    appointment.doctorName ?: "Doctor",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary,
+                )
+                Text(appointment.specialty ?: "", fontSize = 12.sp, color = TextSecondary)
+                Text(appointment.scheduledAt.take(10), fontSize = 12.sp, color = TextTertiary)
+            }
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = bgColor,
+            ) {
+                Text(
+                    statusLabel,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = statusColor,
+                )
+            }
         }
     }
 }

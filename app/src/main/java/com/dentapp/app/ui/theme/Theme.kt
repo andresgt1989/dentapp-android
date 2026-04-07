@@ -3,20 +3,22 @@ package com.dentapp.app.ui.theme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 
-// Colors are defined in Color.kt
-
 private val DentColorScheme = lightColorScheme(
-    primary          = Primary,
-    onPrimary        = OnPrimary,
-    primaryContainer = PrimaryLight,
-    secondary        = Secondary,
-    onSecondary      = OnPrimary,
-    secondaryContainer = SecondaryLight,
-    background       = Background,
-    onBackground     = OnBackground,
-    surface          = Surface,
-    onSurface        = OnBackground,
-    error            = Error,
+    primary             = TealPrimary,
+    onPrimary           = OnPrimary,
+    primaryContainer    = TealLight,
+    onPrimaryContainer  = TealDark,
+    secondary           = GradientEnd,
+    onSecondary         = OnPrimary,
+    secondaryContainer  = SecondaryLight,
+    background          = Background,
+    onBackground        = TextPrimary,
+    surface             = SurfaceWhite,
+    onSurface           = TextPrimary,
+    surfaceVariant      = SurfaceGray,
+    error               = AlertRed,
+    onError             = OnPrimary,
+    errorContainer      = AlertRedLight,
 )
 
 @Composable

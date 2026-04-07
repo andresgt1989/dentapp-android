@@ -5,14 +5,30 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Tooth body - white, same proportions as ic_logo but scaled for adaptive icon -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M34,34 C34,27 40,23 47,25 C50,26 52,28 54,28 C56,28 58,26 61,25 C68,23 74,27 74,34 C74,45 68,56 65,67 C63,72 61,77 58,77 C56,77 55,76 54,72 C53,76 52,77 50,77 C47,77 45,72 43,67 C40,56 34,45 34,34 Z"/>
+    <!--
+        Modern molar tooth — clean lines, adaptive icon safe zone 72dp centered in 108dp.
+        Effective drawing area: x 18..90 / y 18..90
+    -->
 
-    <!-- Shine highlight - subtle translucent overlay -->
+    <!-- Tooth body -->
     <path
         android:fillColor="#FFFFFF"
-        android:fillAlpha="0.25"
-        android:pathData="M45,31 C43,32 42,36 43,40 C44,36 46,33 49,32 Z"/>
+        android:pathData="
+        M40,32
+        C40,26 45,22 52,24
+        C55,25 57,27 54,27
+        C57,27 59,25 62,24
+        C69,22 74,26 74,32
+        C74,44 68,57 65,68
+        C63,74 61,80 58,80
+        C56,80 55,78 54,74
+        C53,78 52,80 50,80
+        C47,80 45,74 43,68
+        C40,57 40,44 40,32 Z"/>
+
+    <!-- Crown highlight for depth -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.30"
+        android:pathData="M47,30 C45,32 44,36 45,40 C46,36 48,33 51,32 Z"/>
 </vector>
