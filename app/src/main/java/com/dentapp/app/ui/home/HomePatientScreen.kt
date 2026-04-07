@@ -446,58 +446,6 @@ private fun InicioTab(
             }
         }
 
-        // ── AI Preview Card ────────────────────────────────────────────────────
-        item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .clickable { onOpenAiManager() },
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("🦷", fontSize = 32.sp)
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text(
-                                "Hola ${state.patientName.ifBlank { "amigo" }} 👋",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                color = TextPrimary,
-                            )
-                            Text(
-                                "¿En qué te ayudo hoy?",
-                                fontSize = 13.sp,
-                                color = TextSecondary,
-                            )
-                        }
-                        Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = TealPrimary)
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(listOf("Tengo dolor 🦷", "Mi receta 📋", "Agendar cita 📅")) { chip ->
-                            AssistChip(
-                                onClick = { onOpenAiManager() },
-                                label = { Text(chip, fontSize = 12.sp) },
-                                shape = RoundedCornerShape(50.dp),
-                                colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = TealPrimary.copy(alpha = 0.08f),
-                                    labelColor = TealPrimary,
-                                ),
-                                border = AssistChipDefaults.assistChipBorder(
-                                    enabled = true,
-                                    borderColor = TealPrimary.copy(alpha = 0.25f),
-                                ),
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
         // ── Acciones rápidas — grid 3 columnas ────────────────────────────────
         item {
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
