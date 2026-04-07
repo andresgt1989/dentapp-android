@@ -36,11 +36,13 @@ class LoyaltyViewModel @Inject constructor(
             try {
                 val balanceRes = api.getLoyaltyBalance()
                 val historyRes = api.getLoyaltyHistory()
+                val balanceBody = if (balanceRes.isSuccessful) balanceRes.body() else null
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        balance = if (balanceRes.isSuccessful) balanceRes.body() else null,
+                        balance = balanceBody,
                         history = if (historyRes.isSuccessful) historyRes.body()?.history ?: emptyList() else emptyList(),
+                        error = if (balanceBody == null) "No se pudo cargar tu saldo de puntos" else null,
                     )
                 }
             } catch (e: Exception) {
