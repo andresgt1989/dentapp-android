@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.dentapp.app-mergeDebugResources-103:/values-in-rID/values-in-rID.xml",
+            "map": [
+                {
+                    "source": "/root/.gradle/caches/transforms-4/8d75e1560526f1f6c85337f228dc0ca0/transformed/jetified-stripe-3ds2-android-6.1.8/res/values-in-rID/values-in-rID.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8",
+                        "startColumns": "4,4,4,4,4,4,4",
+                        "startOffsets": "55,140,242,311,378,444,515",
+                        "endColumns": "84,101,68,66,65,70,66",
+                        "endOffsets": "135,237,306,373,439,510,577"
+                    }
+                }
+            ]
+        }
+    ]
+}

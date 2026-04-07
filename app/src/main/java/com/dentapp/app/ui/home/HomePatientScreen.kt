@@ -6,6 +6,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -48,6 +51,8 @@ fun HomePatientScreen(
     onOpenNotificaciones: () -> Unit = {},
     onOpenPrivacidad: () -> Unit = {},
     onOpenTratamientos: () -> Unit = {},
+    onOpenRx: () -> Unit = {},
+    onOpenLoyalty: () -> Unit = {},
     viewModel: HomePatientViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -76,6 +81,9 @@ fun HomePatientScreen(
                 state = state,
                 onOpenAiManager = onOpenAiManager,
                 onSearchDoctors = { selectedTab = 1 },
+                onOpenCitas = { selectedTab = 2 },
+                onOpenRx = onOpenRx,
+                onOpenLoyalty = onOpenLoyalty,
                 onSendUrgencia = { desc -> viewModel.sendUrgencia(desc) },
                 onOpenTratamientos = onOpenTratamientos,
                 onOpenBooking = onOpenBooking,
@@ -230,53 +238,76 @@ private fun InicioTab(
     state: HomePatientState,
     onOpenAiManager: () -> Unit,
     onSearchDoctors: () -> Unit,
+    onOpenCitas: () -> Unit = {},
+    onOpenRx: () -> Unit = {},
+    onOpenLoyalty: () -> Unit = {},
     onSendUrgencia: (String) -> Unit,
     onOpenTratamientos: () -> Unit = {},
     onOpenBooking: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
-    var showUrgenciaDialog by remember { mutableStateOf(false) }
-    var urgenciaDesc by remember { mutableStateOf("") }
+    var showUrgenciaSheet by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
-    if (showUrgenciaDialog) {
-        AlertDialog(
-            onDismissRequest = { showUrgenciaDialog = false },
-            icon = { Text("🚨", style = MaterialTheme.typography.displaySmall) },
-            title = { Text("¿Es una urgencia?") },
-            text = {
-                Column {
-                    Text("Notificaremos a doctores disponibles. Describe brevemente:")
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = urgenciaDesc,
-                        onValueChange = { urgenciaDesc = it },
-                        label = { Text("Ej: Dolor fuerte en molar, sangrado...") },
-                        maxLines = 3,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = TealPrimary,
-                            focusedLabelColor = TealPrimary,
-                        ),
-                    )
-                }
-            },
-            confirmButton = {
+    if (showUrgenciaSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showUrgenciaSheet = false },
+            sheetState = rememberModalBottomSheetState(),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .navigationBarsPadding(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text("🚨", fontSize = 40.sp)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Urgencia Dental",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text("¿Qué necesitas hacer?", fontSize = 14.sp, color = TextSecondary)
+                Spacer(Modifier.height(24.dp))
                 Button(
                     onClick = {
-                        onSendUrgencia(urgenciaDesc)
-                        showUrgenciaDialog = false
-                        urgenciaDesc = ""
+                        val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:911"))
+                        context.startActivity(intent)
                     },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AlertRed),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(16.dp),
                 ) {
-                    Text("Enviar urgencia")
+                    Text(
+                        "🚨 Llamar emergencias",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = White,
+                    )
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { showUrgenciaDialog = false }) { Text("Cancelar") }
-            },
-        )
+                Spacer(Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = {
+                        showUrgenciaSheet = false
+                        onOpenAiManager()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.5.dp, TealPrimary),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TealPrimary),
+                ) {
+                    Text("💬 Chat urgente con IA", fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                }
+                Spacer(Modifier.height(24.dp))
+            }
+        }
     }
 
     LazyColumn(
@@ -332,56 +363,40 @@ private fun InicioTab(
             }
         }
 
-        // ── Hero Card (gradiente) ──────────────────────────────────────────────
+        // ── Hero Card (gradiente, compacto) ───────────────────────────────────
         item {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(20.dp))
                     .background(Brush.linearGradient(listOf(GradientStart, GradientEnd)))
-                    .defaultMinSize(minHeight = 140.dp)
-                    .padding(20.dp),
+                    .padding(horizontal = 20.dp, vertical = 14.dp),
             ) {
-                // Círculos decorativos sutiles en esquina derecha
+                // Círculo decorativo
                 Box(
                     modifier = Modifier
-                        .size(100.dp)
-                        .offset(x = 60.dp, y = (-20).dp)
+                        .size(80.dp)
+                        .offset(x = 40.dp, y = (-16).dp)
                         .align(Alignment.TopEnd)
                         .clip(CircleShape)
-                        .background(White.copy(alpha = 0.05f)),
+                        .background(White.copy(alpha = 0.06f)),
                 )
-                Box(
-                    modifier = Modifier
-                        .size(70.dp)
-                        .offset(x = 30.dp, y = 20.dp)
-                        .align(Alignment.TopEnd)
-                        .clip(CircleShape)
-                        .background(White.copy(alpha = 0.05f)),
-                )
-
-                Column {
-                    Text(
-                        text = "¿Cómo está tu salud dental hoy?",
-                        color = White,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 28.sp,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = "Tu asistente dental está listo",
-                        color = White.copy(alpha = 0.70f),
-                        fontSize = 14.sp,
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    // Quick action chips
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("Tengo dolor", "Ver tratamiento", "Medicación").forEach { chip ->
-                            HeroChip(text = chip, onClick = onOpenAiManager)
-                        }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = "Tu salud dental",
+                            color = White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text = "Asistente IA listo para ayudarte",
+                            color = White.copy(alpha = 0.75f),
+                            fontSize = 12.sp,
+                        )
                     }
+                    Text("🦷", fontSize = 36.sp)
                 }
             }
         }
@@ -431,6 +446,58 @@ private fun InicioTab(
             }
         }
 
+        // ── AI Preview Card ────────────────────────────────────────────────────
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clickable { onOpenAiManager() },
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("🦷", fontSize = 32.sp)
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "Hola ${state.patientName.ifBlank { "amigo" }} 👋",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                color = TextPrimary,
+                            )
+                            Text(
+                                "¿En qué te ayudo hoy?",
+                                fontSize = 13.sp,
+                                color = TextSecondary,
+                            )
+                        }
+                        Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = TealPrimary)
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(listOf("Tengo dolor 🦷", "Mi receta 📋", "Agendar cita 📅")) { chip ->
+                            AssistChip(
+                                onClick = { onOpenAiManager() },
+                                label = { Text(chip, fontSize = 12.sp) },
+                                shape = RoundedCornerShape(50.dp),
+                                colors = AssistChipDefaults.assistChipColors(
+                                    containerColor = TealPrimary.copy(alpha = 0.08f),
+                                    labelColor = TealPrimary,
+                                ),
+                                border = AssistChipDefaults.assistChipBorder(
+                                    enabled = true,
+                                    borderColor = TealPrimary.copy(alpha = 0.25f),
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         // ── Acciones rápidas — grid 3 columnas ────────────────────────────────
         item {
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -463,8 +530,11 @@ private fun InicioTab(
                                     color = color,
                                     onClick = when (label) {
                                         "Buscar doctor" -> onSearchDoctors
+                                        "Mis citas"     -> onOpenCitas
                                         "AI Chat"       -> onOpenAiManager
-                                        "Urgencia"      -> { { showUrgenciaDialog = true } }
+                                        "Mis Rx"        -> onOpenRx
+                                        "Urgencia"      -> { { showUrgenciaSheet = true } }
+                                        "Puntos"        -> onOpenLoyalty
                                         else            -> { {} }
                                     },
                                     modifier = Modifier.weight(1f),

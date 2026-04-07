@@ -1,0 +1,43 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.dentapp.app-mergeDebugResources-103:/values-en/values-en.xml",
+            "map": [
+                {
+                    "source": "/root/.gradle/caches/transforms-4/8d75e1560526f1f6c85337f228dc0ca0/transformed/jetified-stripe-3ds2-android-6.1.8/res/values-en/values-en.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8",
+                        "startColumns": "4,4,4,4,4,4,4",
+                        "startOffsets": "55,137,235,301,369,433,506",
+                        "endColumns": "81,97,65,67,63,72,67",
+                        "endOffsets": "132,230,296,364,428,501,569"
+                    },
+                    "to": {
+                        "startLines": "3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4",
+                        "startOffsets": "100,182,280,346,414,478,551",
+                        "endColumns": "81,97,65,67,63,72,67",
+                        "endOffsets": "177,275,341,409,473,546,614"
+                    }
+                },
+                {
+                    "source": "/root/dentapp-android/app/src/main/res/values-en/strings.xml",
+                    "from": {
+                        "startLines": "4",
+                        "startColumns": "4",
+                        "startOffsets": "218",
+                        "endColumns": "44",
+                        "endOffsets": "258"
+                    },
+                    "to": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "44",
+                        "endOffsets": "95"
+                    }
+                }
+            ]
+        }
+    ]
+}

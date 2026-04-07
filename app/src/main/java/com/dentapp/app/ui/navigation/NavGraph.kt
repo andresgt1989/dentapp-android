@@ -24,6 +24,7 @@ import com.dentapp.app.ui.perfil.PrivacidadScreen
 import com.dentapp.app.ui.qr.GenerarQRScreen
 import com.dentapp.app.ui.radiografia.XRayCaptureScreen
 import com.dentapp.app.ui.receta.PrescriptionScannerScreen
+import com.dentapp.app.ui.rx.RxPatientScreen
 import com.dentapp.app.ui.splash.SplashScreen
 import com.dentapp.app.ui.subscriptions.SubscriptionScreen
 import com.dentapp.app.ui.tratamiento.TratamientoDto
@@ -63,6 +64,7 @@ object Routes {
     const val PRESCRIPTION_SCAN   = "prescription_scan"
     const val SUBSCRIPTION        = "subscription"
     const val LOYALTY             = "loyalty"
+    const val RX_PATIENT          = "rx_patient"
 
     fun booking(doctorId: String, doctorName: String) =
         "booking/$doctorId/${URLEncoder.encode(doctorName, "UTF-8")}"
@@ -148,6 +150,8 @@ fun DentAppNavGraph(
                 onOpenNotificaciones  = { navController.navigate(Routes.NOTIFICACIONES) },
                 onOpenPrivacidad      = { navController.navigate(Routes.PRIVACIDAD) },
                 onOpenTratamientos    = { navController.navigate(Routes.TRATAMIENTOS) },
+                onOpenRx              = { navController.navigate(Routes.RX_PATIENT) },
+                onOpenLoyalty         = { navController.navigate(Routes.LOYALTY) },
             )
         }
 
@@ -269,6 +273,10 @@ fun DentAppNavGraph(
 
         composable(Routes.LOYALTY) {
             LoyaltyScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.RX_PATIENT) {
+            RxPatientScreen(onBack = { navController.popBackStack() })
         }
     }
 }

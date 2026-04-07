@@ -91,6 +91,7 @@ data class GoogleAuthRequest(
 data class PatientDto(
     val id: String,
     @SerialName("full_name") val fullName: String,
+    val email: String? = null,
     val phone: String? = null,
     @SerialName("date_of_birth") val dateOfBirth: String? = null,
     val address: String? = null,

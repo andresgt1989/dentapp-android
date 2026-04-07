@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.dentapp.app-mergeDebugResources-103:/values-rw/values-rw.xml",
+            "map": [
+                {
+                    "source": "/root/.gradle/caches/transforms-4/a99efe5cf78d71960e9f28a1e9ec0563/transformed/jetified-hcaptcha-20.52.0/res/values-rw/values-rw.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "80",
+                        "endOffsets": "131"
+                    }
+                }
+            ]
+        }
+    ]
+}

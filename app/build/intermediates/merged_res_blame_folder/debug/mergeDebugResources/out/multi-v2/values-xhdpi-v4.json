@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.dentapp.app-mergeDebugResources-103:/values-xhdpi-v4/values-xhdpi-v4.xml",
+            "map": [
+                {
+                    "source": "/root/.gradle/caches/transforms-4/41272d9796c8e93002fee05726ddc177/transformed/jetified-payments-core-20.52.0/res/values-xhdpi-v4/values-xhdpi-v4.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "63",
+                        "endOffsets": "114"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,74 @@
+[
+    {
+        "merged": "com.dentapp.app-debug-105:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.dentapp.app-main-107:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/drawable_ic_logo.xml.flat",
+        "source": "com.dentapp.app-main-107:/drawable/ic_logo.xml"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "com.dentapp.app-main-107:/mipmap-xhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/drawable_bg_gradient.xml.flat",
+        "source": "com.dentapp.app-main-107:/drawable/bg_gradient.xml"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/mipmap-hdpi_ic_launcher.png.flat",
+        "source": "com.dentapp.app-main-107:/mipmap-hdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/xml_file_provider_paths.xml.flat",
+        "source": "com.dentapp.app-main-107:/xml/file_provider_paths.xml"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/mipmap-xxhdpi_ic_launcher_round.png.flat",
+        "source": "com.dentapp.app-main-107:/mipmap-xxhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.dentapp.app-main-107:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/mipmap-xhdpi_ic_launcher_round.png.flat",
+        "source": "com.dentapp.app-main-107:/mipmap-xhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/mipmap-mdpi_ic_launcher.png.flat",
+        "source": "com.dentapp.app-main-107:/mipmap-mdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/mipmap-mdpi_ic_launcher_round.png.flat",
+        "source": "com.dentapp.app-main-107:/mipmap-mdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "com.dentapp.app-main-107:/mipmap-xxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
+        "source": "com.dentapp.app-main-107:/mipmap-xxxhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/drawable_ic_google.xml.flat",
+        "source": "com.dentapp.app-main-107:/drawable/ic_google.xml"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "com.dentapp.app-main-107:/mipmap-xxxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/mipmap-hdpi_ic_launcher_round.png.flat",
+        "source": "com.dentapp.app-main-107:/mipmap-hdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.dentapp.app-main-107:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.dentapp.app-debug-105:/drawable_ic_launcher_background.xml.flat",
+        "source": "com.dentapp.app-main-107:/drawable/ic_launcher_background.xml"
+    }
+]

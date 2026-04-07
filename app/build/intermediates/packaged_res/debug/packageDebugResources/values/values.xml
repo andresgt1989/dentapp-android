@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ahorra_anual">Ahorra 33% con el plan anual</string>
+    <string name="ai_disclaimer">Orientación dental — no reemplaza diagnóstico profesional</string>
+    <string name="analizando_placa">Analizando tu placa… 🦷</string>
+    <string name="app_name">DentApp</string>
+    <string name="capturar_radiografia">Capturar radiografía</string>
+    <string name="compartir_enlace">Compartir enlace</string>
+    <string name="compartir_expediente">Compartir expediente</string>
+    <string name="disclaimer_qr">Solo compartes tu información dental. Email, contraseña y datos bancarios nunca se incluyen.</string>
+    <string name="elegir_galeria">🖼️ Elegir de galería</string>
+    <string name="empezar_trial">Empezar 14 días gratis</string>
+    <string name="escanear_receta">Escanear receta</string>
+    <string name="fue_util">¿Te fue útil?</string>
+    <string name="gcm_defaultSenderId" translatable="false">396056622832</string>
+    <string name="generar_qr">Generar QR</string>
+    <string name="google_api_key" translatable="false">AIzaSyDCuW-oT71jdFTXU_HSvSWPMXMZ5c8vv7o</string>
+    <string name="google_app_id" translatable="false">1:396056622832:android:ed259f0372400907f67435</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDCuW-oT71jdFTXU_HSvSWPMXMZ5c8vv7o</string>
+    <string name="google_storage_bucket" translatable="false">dentapp-24241.firebasestorage.app</string>
+    <string name="google_web_client_id">YOUR_WEB_CLIENT_ID.apps.googleusercontent.com</string>
+    <string name="leyendo_receta">Leyendo tu receta con IA… 💊</string>
+    <string name="mis_puntos">Mis puntos</string>
+    <string name="pais_colombia">Colombia</string>
+    <string name="pais_ecuador">Ecuador</string>
+    <string name="pais_eeuu">Estados Unidos</string>
+    <string name="pais_mexico">México</string>
+    <string name="pais_otro">Otro</string>
+    <string name="planes_dentapp">Planes DentApp</string>
+    <string name="project_id" translatable="false">dentapp-24241</string>
+    <string name="regenerar_qr">Regenerar QR</string>
+    <string name="tomar_foto">📷 Tomar foto</string>
+    <string name="vigencia_enlace">Vigencia del enlace</string>
+    <style name="Theme.DentApp" parent="android:Theme.Material.Light.NoActionBar"/>
+    <style name="Theme.DentApp.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#1A6B8A</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.DentApp</item>
+    </style>
+</resources>

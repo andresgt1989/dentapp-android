@@ -132,6 +132,22 @@ data class LoyaltyTransactionDto(
     @SerialName("created_at") val createdAt: String,
 )
 
+// ── Manual Prescription ───────────────────────────────────────────────────────
+
+@Serializable
+data class ManualPrescriptionRequest(
+    @SerialName("medication_name") val medicationName: String,
+    val dose: String,
+    val frequency: String,
+    @SerialName("doctor_name") val doctorName: String,
+)
+
+@Serializable
+data class ManualPrescriptionResponse(
+    val ok: Boolean,
+    val id: String? = null,
+)
+
 // ── Subscription Trial ────────────────────────────────────────────────────────
 
 @Serializable

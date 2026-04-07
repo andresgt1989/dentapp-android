@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!--
+        Modern molar tooth — clean lines, adaptive icon safe zone 72dp centered in 108dp.
+        Effective drawing area: x 18..90 / y 18..90
+    -->
+
+    <!-- Tooth body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="
+        M40,32
+        C40,26 45,22 52,24
+        C55,25 57,27 54,27
+        C57,27 59,25 62,24
+        C69,22 74,26 74,32
+        C74,44 68,57 65,68
+        C63,74 61,80 58,80
+        C56,80 55,78 54,74
+        C53,78 52,80 50,80
+        C47,80 45,74 43,68
+        C40,57 40,44 40,32 Z"/>
+
+    <!-- Crown highlight for depth -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.30"
+        android:pathData="M47,30 C45,32 44,36 45,40 C46,36 48,33 51,32 Z"/>
+</vector>

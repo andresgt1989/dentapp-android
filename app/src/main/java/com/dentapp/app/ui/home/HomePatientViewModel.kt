@@ -83,7 +83,12 @@ class HomePatientViewModel @Inject constructor(
                 val r = api.getMyPatientProfile()
                 if (r.isSuccessful) {
                     val patient = r.body()?.patient
-                    _state.update { it.copy(patientName = patient?.fullName ?: "") }
+                    _state.update {
+                        it.copy(
+                            patientName = patient?.fullName ?: "",
+                            email = patient?.email ?: "",
+                        )
+                    }
                 }
             } catch (_: Exception) {}
         }

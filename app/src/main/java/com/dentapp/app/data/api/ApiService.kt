@@ -174,6 +174,10 @@ interface ApiService {
     @GET("api/recetas")
     suspend fun getMisRecetas(): Response<RecetasResponse>
 
+    // ── Manual Prescriptions ──────────────────────────────────────────────────
+    @POST("api/prescriptions")
+    suspend fun createPrescription(@Body request: ManualPrescriptionRequest): Response<ManualPrescriptionResponse>
+
     // ── AI Feedback ───────────────────────────────────────────────────────────
     @POST("api/ai/feedback")
     suspend fun submitAiFeedback(@Body request: AiFeedbackRequest): Response<AiFeedbackResponse>

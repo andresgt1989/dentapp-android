@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Fondo círculo azul -->
+    <path
+        android:fillColor="#1A6B8A"
+        android:pathData="M60,0 A60,60 0 1,1 60,120 A60,60 0 1,1 60,0 Z"/>
+
+    <!-- Diente blanco simplificado -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="
+        M38,38
+        C38,30 44,26 52,28
+        C56,29 58,31 60,31
+        C62,31 64,29 68,28
+        C76,26 82,30 82,38
+        C82,50 76,62 72,74
+        C70,80 68,86 64,86
+        C62,86 61,84 60,80
+        C59,84 58,86 56,86
+        C52,86 50,80 48,74
+        C44,62 38,50 38,38 Z"/>
+
+    <!-- Brillo diente -->
+    <path
+        android:fillColor="#E3F4FA"
+        android:pathData="M50,34 C48,36 47,40 48,44 C49,40 51,37 54,36 Z"
+        android:fillAlpha="0.6"/>
+</vector>
