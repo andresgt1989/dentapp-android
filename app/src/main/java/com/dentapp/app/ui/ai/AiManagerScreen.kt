@@ -282,7 +282,7 @@ fun AiManagerScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    items(state.messages, key = { "${it.role}_${it.createdAt}_${it.content.take(10)}" }) { msg ->
+                    itemsIndexed(state.messages, key = { index, _ -> index }) { _, msg ->
                         MessageBubble(msg)
                         if (msg.role == "assistant") {
                             FeedbackRow(
