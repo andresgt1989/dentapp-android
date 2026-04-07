@@ -310,7 +310,7 @@ fun HistorialMedicoScreen(
             }
 
             // ── Sección: Medicamentos sistémicos ───────────────────────────
-            SeccionCard(titulo = "Medicamentos sistémicos", icon = Icons.Outlined.MedicationLiquid) {
+            SeccionCard(titulo = "Medicamentos sistémicos", icon = Icons.Outlined.Medication) {
                 Text(
                     "Lista los medicamentos que tomas actualmente (separados por coma).",
                     style = MaterialTheme.typography.bodySmall,
