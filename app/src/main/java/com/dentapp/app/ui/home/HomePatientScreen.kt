@@ -115,6 +115,7 @@ fun HomePatientScreen(
                 onOpenNotificaciones = onOpenNotificaciones,
                 onOpenPrivacidad = onOpenPrivacidad,
                 onOpenTratamientos = onOpenTratamientos,
+                onOpenRx = onOpenRx,
                 modifier = Modifier.padding(padding),
             )
         }
@@ -1002,6 +1003,7 @@ private fun PerfilTab(
     onOpenNotificaciones: () -> Unit = {},
     onOpenPrivacidad: () -> Unit = {},
     onOpenTratamientos: () -> Unit = {},
+    onOpenRx: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -1111,6 +1113,15 @@ private fun PerfilTab(
                 titulo = "Mis tratamientos",
                 subtitulo = "Endodoncia, ortodoncia, implantes…",
                 onClick = onOpenTratamientos,
+            )
+        }
+        item {
+            PerfilMenuCard(
+                icon = Icons.Outlined.Medication,
+                iconColor = Color(0xFFEC4899),
+                titulo = "Mis recetas",
+                subtitulo = "Ver y registrar tus recetas médicas",
+                onClick = onOpenRx,
             )
         }
         item {
