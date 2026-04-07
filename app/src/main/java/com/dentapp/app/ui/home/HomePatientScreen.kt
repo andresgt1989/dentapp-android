@@ -707,7 +707,9 @@ private fun TreatmentMiniCard(tratamiento: TratamientoDto, onClick: () -> Unit) 
                 maxLines = 1,
             )
             Spacer(Modifier.height(10.dp))
-            val progress = (tratamiento.fasesCompletadas.toFloat() / tratamiento.totalFases.toFloat().coerceAtLeast(1f))
+            val fasesCompletadas = 0
+            val totalFases = 1
+            val progress = (fasesCompletadas.toFloat() / totalFases.toFloat().coerceAtLeast(1f))
             LinearProgressIndicator(
                 progress = { progress },
                 modifier = Modifier
