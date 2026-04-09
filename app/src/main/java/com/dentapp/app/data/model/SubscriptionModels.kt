@@ -19,4 +19,6 @@ data class SubscriptionStatusResponse(
     val plan: String,
     @SerializedName("subscription_status") val subscriptionStatus: String,
     @SerializedName("stripe_customer_id") val stripeCustomerId: String?,
+    @SerializedName("trial_ends_at") val trialEndsAt: String? = null,
+    @SerializedName("current_period_end") val currentPeriodEnd: String? = null,
 )

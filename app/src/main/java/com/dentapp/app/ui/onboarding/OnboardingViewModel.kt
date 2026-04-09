@@ -37,15 +37,13 @@ class OnboardingViewModel @Inject constructor(
     fun setMedicalCondition(cond: String)    = _state.update { it.copy(medicalCondition = cond) }
     fun setInviteCode(code: String)          = _state.update { it.copy(inviteCode = code) }
 
-    /** Fire-and-forget: saves onboarding data to TokenStore + API. Navigation is caller's responsibility. */
+    /** Fire-and-forget: saves onboarding data + activates 14-day Pro trial. Navigation is caller's responsibility. */
     fun saveOnboarding() {
         val s = _state.value
         viewModelScope.launch {
             _state.update { it.copy(isSaving = true, error = null) }
             try {
-                if (s.country.isNotBlank()) {
-                    tokenStore.saveCountry(s.country)
-                }
+                if (s.country.isNotBlank()) tokenStore.saveCountry(s.country)
                 api.saveOnboarding(
                     OnboardingRequest(
                         country           = s.country.ifBlank { null },
@@ -54,6 +52,8 @@ class OnboardingViewModel @Inject constructor(
                         role              = s.role.ifBlank { null },
                     )
                 )
+                // Auto-activate 14-day Pro trial (fire & forget — no bloquea navegación)
+                try { api.startTrial() } catch (_: Exception) {}
             } catch (e: Exception) {
                 _state.update { it.copy(error = e.message) }
             } finally {

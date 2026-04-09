@@ -86,6 +86,7 @@ fun HomePatientScreen(
                 onOpenRx = onOpenRx,
                 onOpenLoyalty = onOpenLoyalty,
                 onOpenNotificaciones = onOpenNotificaciones,
+                onOpenSubscription = onOpenSubscription,
                 onSendUrgencia = { desc -> viewModel.sendUrgencia(desc) },
                 onOpenTratamientos = onOpenTratamientos,
                 onOpenBooking = onOpenBooking,
@@ -247,6 +248,7 @@ private fun InicioTab(
     onOpenRx: () -> Unit = {},
     onOpenLoyalty: () -> Unit = {},
     onOpenNotificaciones: () -> Unit = {},
+    onOpenSubscription: () -> Unit = {},
     onSendUrgencia: (String) -> Unit,
     onOpenTratamientos: () -> Unit = {},
     onOpenBooking: (String, String) -> Unit = { _, _ -> },
@@ -365,6 +367,54 @@ private fun InicioTab(
                         contentDescription = "Notificaciones",
                         tint = TextSecondary,
                     )
+                }
+            }
+        }
+
+        // ── Banner Trial Pro ──────────────────────────────────────────────────
+        if (state.trialDaysLeft != null) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Brush.linearGradient(listOf(Color(0xFFF59E0B), Color(0xFFEA580C))))
+                        .clickable(onClick = onOpenSubscription)
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text("⭐", fontSize = 18.sp)
+                            Column {
+                                Text(
+                                    "Trial Pro activo",
+                                    color = Color.White,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                Text(
+                                    if (state.trialDaysLeft > 0) "${state.trialDaysLeft} días restantes"
+                                    else "Vence hoy",
+                                    color = Color.White.copy(alpha = 0.85f),
+                                    fontSize = 11.sp,
+                                )
+                            }
+                        }
+                        Text(
+                            "Ver planes →",
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
                 }
             }
         }

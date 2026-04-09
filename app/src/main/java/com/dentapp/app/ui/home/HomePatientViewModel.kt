@@ -24,6 +24,8 @@ data class HomePatientState(
     val criticalAlerts: List<ClinicalAlert> = emptyList(),
     val tratamientos: List<TratamientoDto> = emptyList(),
     val loyaltyPoints: Int = 0,
+    val trialDaysLeft: Int? = null,   // null = no trial, 0+ = días restantes
+    val subscriptionPlan: String = "free",
     val isLoadingDoctors: Boolean = false,
     val isLoadingAppointments: Boolean = false,
     val error: String? = null,
@@ -46,6 +48,7 @@ class HomePatientViewModel @Inject constructor(
         loadClinicalAlerts()
         loadTratamientos()
         loadLoyaltyPoints()
+        loadSubscriptionStatus()
     }
 
     fun loadDoctors() {
@@ -126,6 +129,33 @@ class HomePatientViewModel @Inject constructor(
                 val r = api.getLoyaltyBalance()
                 if (r.isSuccessful) {
                     _state.update { it.copy(loyaltyPoints = r.body()?.puntos ?: 0) }
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun loadSubscriptionStatus() {
+        viewModelScope.launch {
+            try {
+                val r = api.getSubscriptionStatus()
+                if (r.isSuccessful) {
+                    val body = r.body() ?: return@launch
+                    val plan   = body.plan
+                    val status = body.subscriptionStatus
+                    // Calcular días restantes de trial si aplica
+                    val daysLeft = if (status == "trialing") {
+                        try {
+                            val endStr = body.trialEndsAt ?: body.currentPeriodEnd
+                            if (endStr != null) {
+                                val fmt = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+                                fmt.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                                val endDate = fmt.parse(endStr.take(19))?.time ?: 0L
+                                val diff = endDate - System.currentTimeMillis()
+                                (diff / (1000 * 60 * 60 * 24)).toInt().coerceAtLeast(0)
+                            } else 14
+                        } catch (_: Exception) { 14 }
+                    } else null
+                    _state.update { it.copy(subscriptionPlan = plan, trialDaysLeft = daysLeft) }
                 }
             } catch (_: Exception) {}
         }
