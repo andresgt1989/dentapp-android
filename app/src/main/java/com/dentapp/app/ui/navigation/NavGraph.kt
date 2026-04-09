@@ -202,6 +202,7 @@ fun DentAppNavGraph(
                     runBlocking { tokenStore.clear() }
                     navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
                 },
+                onOpenGenerarQR = { navController.navigate(Routes.GENERAR_QR) },
             )
         }
 

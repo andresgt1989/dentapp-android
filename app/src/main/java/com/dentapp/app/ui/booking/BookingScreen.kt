@@ -45,10 +45,7 @@ private val OPCIONES_CONSULTA = listOf(
     ConsultaOption("chat_doctor", "Chat con Doctor", "Respuesta en <2h por doctor real", "$5", "2h", "chat", "💬", Color(0xFF6A1B9A)),
 )
 
-private val HORARIOS = listOf("08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
-    "14:00", "15:00", "16:00", "17:00", "18:00")
-
-private val DIAS_SEMANA = listOf("Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom")
+private val DIAS_SEMANA = listOf("Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb")
 
 // ── BookingScreen ─────────────────────────────────────────────────────────────
 
@@ -69,6 +66,11 @@ fun BookingScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
+    LaunchedEffect(doctorId) {
+        viewModel.loadDoctorSchedule(doctorId)
+        viewModel.trackBookingStarted(doctorId)
+    }
+
     LaunchedEffect(state.error) {
         state.error?.let {
             snackbarHostState.showSnackbar(it)
@@ -77,26 +79,21 @@ fun BookingScreen(
     }
 
     LaunchedEffect(state.success) {
-        if (state.success) {
-            showSuccessDialog = true
-        }
+        if (state.success) showSuccessDialog = true
     }
 
-    // Generar fechas de la próxima semana
-    val fechasDisponibles = remember {
-        val hoy = java.util.Calendar.getInstance()
-        (1..7).map { i ->
+    // Fechas de los próximos 14 días filtradas por días laborables del doctor
+    val fechasDisponibles = remember(state.workingDays) {
+        (1..14).mapNotNull { i ->
             val cal = java.util.Calendar.getInstance()
             cal.add(java.util.Calendar.DAY_OF_YEAR, i)
-            val day = DIAS_SEMANA[cal.get(java.util.Calendar.DAY_OF_WEEK) - 1]
+            val dow = cal.get(java.util.Calendar.DAY_OF_WEEK)
+            if (dow !in state.workingDays) return@mapNotNull null
+            val day    = DIAS_SEMANA[dow - 1]
             val dayNum = cal.get(java.util.Calendar.DAY_OF_MONTH)
-            val month = cal.get(java.util.Calendar.MONTH) + 1
-            val year = cal.get(java.util.Calendar.YEAR)
-            Triple(
-                "$day $dayNum",
-                "%04d-%02d-%02d".format(year, month, dayNum),
-                dayNum
-            )
+            val month  = cal.get(java.util.Calendar.MONTH) + 1
+            val year   = cal.get(java.util.Calendar.YEAR)
+            Triple("$day $dayNum", "%04d-%02d-%02d".format(year, month, dayNum), dayNum)
         }
     }
 
@@ -283,44 +280,49 @@ fun BookingScreen(
                         color = DentTextPrimary,
                     )
                     Spacer(Modifier.height(12.dp))
-                    // Grid 3 columnas
-                    val chunked = HORARIOS.chunked(3)
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        chunked.forEach { row ->
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                row.forEach { hora ->
-                                    val isSelected = selectedHora == hora
-                                    Card(
-                                        onClick = { selectedHora = hora },
-                                        shape = RoundedCornerShape(10.dp),
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = if (isSelected) Primary else White,
-                                        ),
-                                        elevation = CardDefaults.cardElevation(if (isSelected) 4.dp else 1.dp),
-                                        border = if (isSelected) null else BorderStroke(1.dp, Color(0xFFE0E0E0)),
-                                        modifier = Modifier.weight(1f),
+                    when {
+                        state.isLoadingSchedule -> {
+                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Primary)
+                            }
+                        }
+                        state.availableSlots.isEmpty() -> {
+                            Text("Sin horarios disponibles", style = MaterialTheme.typography.bodySmall, color = DentTextSecond)
+                        }
+                        else -> {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                state.availableSlots.chunked(3).forEach { row ->
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.fillMaxWidth(),
                                     ) {
-                                        Box(
-                                            contentAlignment = Alignment.Center,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(vertical = 10.dp),
-                                        ) {
-                                            Text(
-                                                hora,
-                                                style = MaterialTheme.typography.labelMedium,
-                                                fontWeight = FontWeight.Medium,
-                                                color = if (isSelected) White else DentTextPrimary,
-                                            )
+                                        row.forEach { hora ->
+                                            val isSelected = selectedHora == hora
+                                            Card(
+                                                onClick = { selectedHora = hora },
+                                                shape = RoundedCornerShape(10.dp),
+                                                colors = CardDefaults.cardColors(
+                                                    containerColor = if (isSelected) Primary else White,
+                                                ),
+                                                elevation = CardDefaults.cardElevation(if (isSelected) 4.dp else 1.dp),
+                                                border = if (isSelected) null else BorderStroke(1.dp, Color(0xFFE0E0E0)),
+                                                modifier = Modifier.weight(1f),
+                                            ) {
+                                                Box(
+                                                    contentAlignment = Alignment.Center,
+                                                    modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                                                ) {
+                                                    Text(
+                                                        hora,
+                                                        style = MaterialTheme.typography.labelMedium,
+                                                        fontWeight = FontWeight.Medium,
+                                                        color = if (isSelected) White else DentTextPrimary,
+                                                    )
+                                                }
+                                            }
                                         }
+                                        repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                                     }
-                                }
-                                // Rellenar columnas vacías si la fila tiene menos de 3
-                                repeat(3 - row.size) {
-                                    Spacer(Modifier.weight(1f))
                                 }
                             }
                         }

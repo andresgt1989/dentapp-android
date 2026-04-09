@@ -78,6 +78,7 @@ class PrivacidadViewModel @Inject constructor(
 fun PrivacidadScreen(
     onBack: () -> Unit,
     onAccountDeleted: () -> Unit,
+    onOpenGenerarQR: () -> Unit = {},
     viewModel: PrivacidadViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -155,7 +156,7 @@ fun PrivacidadScreen(
                         icon = Icons.Outlined.QrCode,
                         titulo = "Gestionar QR compartidos",
                         descripcion = "Ver y revocar tokens de acceso activos",
-                        onClick = { /* TODO: navegar a GenerarQRScreen */ },
+                        onClick = onOpenGenerarQR,
                     )
                 }
             }

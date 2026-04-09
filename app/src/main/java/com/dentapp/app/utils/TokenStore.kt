@@ -1,6 +1,7 @@
 package com.dentapp.app.utils
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -36,6 +37,16 @@ class TokenStore @Inject constructor(
 
     suspend fun saveCountry(country: String) {
         context.dataStore.edit { it[KEY_COUNTRY] = country }
+    }
+
+    // ── Notification preferences ───────────────────────────────────────────────
+    private fun notifKey(id: String) = booleanPreferencesKey("notif_$id")
+
+    fun getNotifPref(id: String, default: Boolean = true): Flow<Boolean> =
+        context.dataStore.data.map { it[notifKey(id)] ?: default }
+
+    suspend fun saveNotifPref(id: String, enabled: Boolean) {
+        context.dataStore.edit { it[notifKey(id)] = enabled }
     }
 
     suspend fun clear() {

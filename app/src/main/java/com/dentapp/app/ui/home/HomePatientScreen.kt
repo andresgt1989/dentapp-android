@@ -1273,11 +1273,8 @@ private fun PerfilMenuCard(
 
 @Composable
 private fun DoctorCard(doctor: DoctorDto, onClick: () -> Unit = {}) {
-    val hash      = doctor.id.hashCode().and(0x7FFFFFFF)
-    val rating    = 4.7f + (hash % 3) * 0.1f
-    val ratingStr = "%.1f".format(rating)
-    val timeSlots = listOf("9:00 AM", "10:30 AM", "2:00 PM", "3:30 PM", "5:00 PM")
-    val nextSlot  = timeSlots[hash % timeSlots.size]
+    val ratingStr = doctor.ratingPromedio?.let { "%.1f".format(it) } ?: "Nuevo"
+    val nextSlot  = doctor.horarioInicio.ifBlank { "08:00" }
     val price     = when {
         doctor.consultationFee <= 0    -> "Gratis"
         doctor.consultationFee > 10000 -> "COP ${"%.0f".format(doctor.consultationFee)}"

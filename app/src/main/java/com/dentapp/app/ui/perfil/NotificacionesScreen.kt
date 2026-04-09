@@ -13,15 +13,23 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.dentapp.app.ui.theme.*
+import com.dentapp.app.utils.TokenStore
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 // ─────────────────────────────────────────────────────────────────────────────
-// NotificacionesScreen — Preferencias de notificación (local, sin VM extra)
+// Modelo
 // ─────────────────────────────────────────────────────────────────────────────
 
 data class NotifPref(
@@ -29,60 +37,76 @@ data class NotifPref(
     val icon: ImageVector,
     val titulo: String,
     val descripcion: String,
-    var enabled: Boolean,
+    val default: Boolean,
 )
+
+private val NOTIF_PREFS = listOf(
+    NotifPref("recordatorio_cita",  Icons.Outlined.CalendarToday, "Recordatorio de cita",        "24 h y 2 h antes de tu cita",                        default = true),
+    NotifPref("confirmacion",       Icons.Outlined.CheckCircle,   "Confirmación de reserva",      "Cuando el doctor confirme tu cita",                   default = true),
+    NotifPref("cancelacion",        Icons.Outlined.Cancel,        "Cancelaciones",                "Si tu cita es cancelada o modificada",                default = true),
+    NotifPref("pago",               Icons.Outlined.Receipt,       "Confirmación de pago",         "Recibo y estado de tu pago",                          default = true),
+    NotifPref("medicamentos",       Icons.Outlined.Medication,    "Recordatorio de medicamentos", "Alertas de toma de medicación postoperatoria",        default = true),
+    NotifPref("ia_consejo",         Icons.Outlined.AutoAwesome,   "Consejos de tu IA dental",     "Tips personalizados según tu perfil",                 default = false),
+    NotifPref("marketing",          Icons.Outlined.Campaign,      "Promociones y novedades",      "Ofertas de clínicas y nuevas funciones",              default = false),
+)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ViewModel — persiste en DataStore
+// ─────────────────────────────────────────────────────────────────────────────
+
+data class NotificacionesState(
+    val enabled: Map<String, Boolean> = emptyMap(),
+    val saved: Boolean = false,
+)
+
+@HiltViewModel
+class NotificacionesViewModel @Inject constructor(
+    private val store: TokenStore,
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(NotificacionesState())
+    val state: StateFlow<NotificacionesState> = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val flows = NOTIF_PREFS.map { pref ->
+                store.getNotifPref(pref.id, pref.default).map { pref.id to it }
+            }
+            combine(flows) { pairs -> pairs.toMap() }
+                .collect { map -> _state.update { it.copy(enabled = map) } }
+        }
+    }
+
+    fun toggle(id: String, value: Boolean) {
+        _state.update { it.copy(enabled = it.enabled + (id to value), saved = false) }
+    }
+
+    fun save() {
+        viewModelScope.launch {
+            _state.value.enabled.forEach { (id, enabled) ->
+                store.saveNotifPref(id, enabled)
+            }
+            _state.update { it.copy(saved = true) }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Screen
+// ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificacionesScreen(onBack: () -> Unit) {
-    val prefs = remember {
-        mutableStateListOf(
-            NotifPref(
-                "recordatorio_cita", Icons.Outlined.CalendarToday,
-                "Recordatorio de cita",
-                "24 h y 2 h antes de tu cita",
-                enabled = true,
-            ),
-            NotifPref(
-                "confirmacion", Icons.Outlined.CheckCircle,
-                "Confirmación de reserva",
-                "Cuando el doctor confirme tu cita",
-                enabled = true,
-            ),
-            NotifPref(
-                "cancelacion", Icons.Outlined.Cancel,
-                "Cancelaciones",
-                "Si tu cita es cancelada o modificada",
-                enabled = true,
-            ),
-            NotifPref(
-                "pago", Icons.Outlined.Receipt,
-                "Confirmación de pago",
-                "Recibo y estado de tu pago",
-                enabled = true,
-            ),
-            NotifPref(
-                "medicamentos", Icons.Outlined.Medication,
-                "Recordatorio de medicamentos",
-                "Alertas de toma de medicación postoperatoria",
-                enabled = true,
-            ),
-            NotifPref(
-                "ia_consejo", Icons.Outlined.AutoAwesome,
-                "Consejos de tu IA dental",
-                "Tips personalizados según tu perfil",
-                enabled = false,
-            ),
-            NotifPref(
-                "marketing", Icons.Outlined.Campaign,
-                "Promociones y novedades",
-                "Ofertas de clínicas y nuevas funciones",
-                enabled = false,
-            ),
-        )
-    }
-
+fun NotificacionesScreen(
+    onBack: () -> Unit,
+    viewModel: NotificacionesViewModel = hiltViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(state.saved) {
+        if (state.saved) snackbarHostState.showSnackbar("Preferencias guardadas")
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -115,12 +139,7 @@ fun NotificacionesScreen(onBack: () -> Unit) {
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(
-                            Icons.Outlined.Info,
-                            contentDescription = null,
-                            tint = Primary,
-                            modifier = Modifier.size(20.dp),
-                        )
+                        Icon(Icons.Outlined.Info, null, tint = Primary, modifier = Modifier.size(20.dp))
                         Text(
                             "Las notificaciones críticas (citas, pagos) siempre estarán activas.",
                             style = MaterialTheme.typography.bodySmall,
@@ -131,18 +150,19 @@ fun NotificacionesScreen(onBack: () -> Unit) {
                 Spacer(Modifier.height(8.dp))
             }
 
-            items(prefs, key = { it.id }) { pref ->
-                val index = prefs.indexOf(pref)
+            items(NOTIF_PREFS, key = { it.id }) { pref ->
+                val enabled = state.enabled[pref.id] ?: pref.default
                 NotifRow(
                     pref = pref,
-                    onToggle = { prefs[index] = pref.copy(enabled = it) },
+                    enabled = enabled,
+                    onToggle = { viewModel.toggle(pref.id, it) },
                 )
             }
 
             item {
                 Spacer(Modifier.height(16.dp))
                 Button(
-                    onClick = { /* TODO: persistir en SharedPreferences / API */ },
+                    onClick = { viewModel.save() },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Primary),
@@ -158,6 +178,7 @@ fun NotificacionesScreen(onBack: () -> Unit) {
 @Composable
 private fun NotifRow(
     pref: NotifPref,
+    enabled: Boolean,
     onToggle: (Boolean) -> Unit,
 ) {
     Card(
@@ -175,13 +196,13 @@ private fun NotifRow(
                 modifier = Modifier
                     .size(38.dp)
                     .clip(CircleShape)
-                    .background(if (pref.enabled) PrimaryLight else DividerColor),
+                    .background(if (enabled) PrimaryLight else DividerColor),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     pref.icon,
                     contentDescription = null,
-                    tint = if (pref.enabled) Primary else TextSecondary,
+                    tint = if (enabled) Primary else TextSecondary,
                     modifier = Modifier.size(20.dp),
                 )
             }
@@ -190,7 +211,7 @@ private fun NotifRow(
                 Text(pref.descripcion, color = TextSecondary, fontSize = 12.sp)
             }
             Switch(
-                checked = pref.enabled,
+                checked = enabled,
                 onCheckedChange = onToggle,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = Primary,

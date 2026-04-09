@@ -61,6 +61,13 @@ data class DoctorDto(
     @SerialName("bank_name") val bankName: String? = null,
     @SerialName("bank_account") val bankAccount: String? = null,
     @SerialName("wise_email") val wiseEmail: String? = null,
+    // Campos extendidos del perfil público
+    @SerialName("rating_promedio") val ratingPromedio: Double? = null,
+    @SerialName("photo_url") val photoUrl: String? = null,
+    val city: String? = null,
+    @SerialName("horario_inicio") val horarioInicio: String = "08:00",
+    @SerialName("horario_fin") val horarioFin: String = "18:00",
+    @SerialName("dias_laborables") val diasLaborables: List<Int> = listOf(1, 2, 3, 4, 5),
 )
 
 @Serializable
