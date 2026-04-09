@@ -2,11 +2,13 @@ package com.dentapp.app.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dentapp.app.data.api.ApiService
 import com.dentapp.app.data.model.RegisterRequest
 import com.dentapp.app.data.repository.AuthRepository
 import com.dentapp.app.data.repository.Result
 import com.dentapp.app.utils.Analytics
 import com.dentapp.app.utils.FeatureFlagManager
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,6 +25,7 @@ data class AuthUiState(
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val repo: AuthRepository,
+    private val api: ApiService,
     private val featureFlags: FeatureFlagManager,
     private val analytics: Analytics,
 ) : ViewModel() {
@@ -97,6 +100,15 @@ class AuthViewModel @Inject constructor(
         analytics.setAuthenticated(true)
         analytics.track("app_open")
         featureFlags.fetchForUser()
+        registerFcmToken()
+    }
+
+    private fun registerFcmToken() {
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            viewModelScope.launch {
+                try { api.saveFcmToken(mapOf("token" to token)) } catch (_: Exception) {}
+            }
+        }
     }
 
     fun setError(msg: String) { _state.value = AuthUiState(error = msg) }

@@ -207,6 +207,10 @@ interface ApiService {
     @GET("api/config/features/me")
     suspend fun getMyFeatureFlags(): Response<FeatureFlagsResponse>
 
+    // ── FCM push token ────────────────────────────────────────────────────────
+    @PUT("api/users/fcm-token")
+    suspend fun saveFcmToken(@Body body: Map<String, String>): Response<MessageResponse>
+
     // ── Analytics ────────────────────────────────────────────────────────────
     @POST("api/analytics/event")
     suspend fun trackEvent(@Body event: AnalyticsEvent): Response<MessageResponse>
