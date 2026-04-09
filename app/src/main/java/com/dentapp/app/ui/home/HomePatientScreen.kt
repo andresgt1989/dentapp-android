@@ -53,6 +53,7 @@ fun HomePatientScreen(
     onOpenTratamientos: () -> Unit = {},
     onOpenRx: () -> Unit = {},
     onOpenLoyalty: () -> Unit = {},
+    onOpenSubscription: () -> Unit = {},
     viewModel: HomePatientViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -84,6 +85,7 @@ fun HomePatientScreen(
                 onOpenCitas = { selectedTab = 2 },
                 onOpenRx = onOpenRx,
                 onOpenLoyalty = onOpenLoyalty,
+                onOpenNotificaciones = onOpenNotificaciones,
                 onSendUrgencia = { desc -> viewModel.sendUrgencia(desc) },
                 onOpenTratamientos = onOpenTratamientos,
                 onOpenBooking = onOpenBooking,
@@ -107,6 +109,7 @@ fun HomePatientScreen(
             3 -> PerfilTab(
                 patientName = state.patientName,
                 email = state.email,
+                loyaltyPoints = state.loyaltyPoints,
                 onLogout = onLogout,
                 onOpenExpediente = onOpenExpediente,
                 onOpenHistorialMedico = onOpenHistorialMedico,
@@ -116,6 +119,7 @@ fun HomePatientScreen(
                 onOpenPrivacidad = onOpenPrivacidad,
                 onOpenTratamientos = onOpenTratamientos,
                 onOpenRx = onOpenRx,
+                onOpenSubscription = onOpenSubscription,
                 modifier = Modifier.padding(padding),
             )
         }
@@ -242,6 +246,7 @@ private fun InicioTab(
     onOpenCitas: () -> Unit = {},
     onOpenRx: () -> Unit = {},
     onOpenLoyalty: () -> Unit = {},
+    onOpenNotificaciones: () -> Unit = {},
     onSendUrgencia: (String) -> Unit,
     onOpenTratamientos: () -> Unit = {},
     onOpenBooking: (String, String) -> Unit = { _, _ -> },
@@ -354,7 +359,7 @@ private fun InicioTab(
                         fontSize = 13.sp,
                     )
                 }
-                IconButton(onClick = {}) {
+                IconButton(onClick = { onOpenNotificaciones() }) {
                     Icon(
                         Icons.Outlined.Notifications,
                         contentDescription = "Notificaciones",
@@ -726,9 +731,17 @@ private fun TreatmentMiniCard(tratamiento: TratamientoDto, onClick: () -> Unit) 
                 maxLines = 1,
             )
             Spacer(Modifier.height(10.dp))
-            val fasesCompletadas = 0
-            val totalFases = 1
-            val progress = (fasesCompletadas.toFloat() / totalFases.toFloat().coerceAtLeast(1f))
+            val progress = when (tratamiento.status) {
+                "completado" -> 1f
+                "pausado"    -> 0.5f
+                else -> try {
+                    val fmt = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                    val inicio = fmt.parse(tratamiento.fechaInicio)?.time ?: 0L
+                    val fin    = tratamiento.fechaEstimadaFin?.let { fmt.parse(it)?.time } ?: 0L
+                    if (fin > inicio) ((System.currentTimeMillis() - inicio).toFloat() / (fin - inicio).toFloat()).coerceIn(0.05f, 0.95f)
+                    else 0.3f
+                } catch (_: Exception) { 0.3f }
+            }
             LinearProgressIndicator(
                 progress = { progress },
                 modifier = Modifier
@@ -995,6 +1008,7 @@ private fun CitasTab(
 private fun PerfilTab(
     patientName: String,
     email: String,
+    loyaltyPoints: Int = 0,
     onLogout: () -> Unit,
     onOpenExpediente: () -> Unit = {},
     onOpenHistorialMedico: () -> Unit = {},
@@ -1004,6 +1018,7 @@ private fun PerfilTab(
     onOpenPrivacidad: () -> Unit = {},
     onOpenTratamientos: () -> Unit = {},
     onOpenRx: () -> Unit = {},
+    onOpenSubscription: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -1062,7 +1077,7 @@ private fun PerfilTab(
                             color = CoralAccent.copy(alpha = 0.85f),
                         ) {
                             Text(
-                                "★ 120 pts",
+                                "★ $loyaltyPoints pts",
                                 color = White,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
@@ -1149,6 +1164,17 @@ private fun PerfilTab(
                 titulo = "Privacidad y seguridad",
                 subtitulo = "Datos, QR compartidos y cuenta",
                 onClick = onOpenPrivacidad,
+            )
+        }
+        item {
+            PerfilMenuCard(
+                icon = Icons.Outlined.Star,
+                iconColor = Color(0xFFF59E0B),
+                titulo = "Planes y suscripción",
+                subtitulo = "Free · Pro · Clínica — actualiza tu plan",
+                badge = "PRO",
+                badgeColor = Color(0xFFF59E0B),
+                onClick = onOpenSubscription,
             )
         }
 

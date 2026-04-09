@@ -23,6 +23,7 @@ data class HomePatientState(
     val appointments: List<AppointmentDto> = emptyList(),
     val criticalAlerts: List<ClinicalAlert> = emptyList(),
     val tratamientos: List<TratamientoDto> = emptyList(),
+    val loyaltyPoints: Int = 0,
     val isLoadingDoctors: Boolean = false,
     val isLoadingAppointments: Boolean = false,
     val error: String? = null,
@@ -44,6 +45,7 @@ class HomePatientViewModel @Inject constructor(
         loadPatientProfile()
         loadClinicalAlerts()
         loadTratamientos()
+        loadLoyaltyPoints()
     }
 
     fun loadDoctors() {
@@ -113,6 +115,17 @@ class HomePatientViewModel @Inject constructor(
                 val r = api.getTratamientos()
                 if (r.isSuccessful) {
                     _state.update { it.copy(tratamientos = r.body()?.tratamientos ?: emptyList()) }
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun loadLoyaltyPoints() {
+        viewModelScope.launch {
+            try {
+                val r = api.getLoyaltyBalance()
+                if (r.isSuccessful) {
+                    _state.update { it.copy(loyaltyPoints = r.body()?.puntos ?: 0) }
                 }
             } catch (_: Exception) {}
         }

@@ -152,6 +152,7 @@ fun DentAppNavGraph(
                 onOpenTratamientos    = { navController.navigate(Routes.TRATAMIENTOS) },
                 onOpenRx              = { navController.navigate(Routes.RX_PATIENT) },
                 onOpenLoyalty         = { navController.navigate(Routes.LOYALTY) },
+                onOpenSubscription    = { navController.navigate(Routes.SUBSCRIPTION) },
             )
         }
 

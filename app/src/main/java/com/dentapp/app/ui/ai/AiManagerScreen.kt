@@ -274,7 +274,7 @@ fun AiManagerScreen(
                     CircularProgressIndicator(color = TealPrimary)
                 }
             } else if (state.messages.isEmpty()) {
-                EmptyState()
+                EmptyState(onSendMessage = { viewModel.sendMessage(it) })
             } else {
                 LazyColumn(
                     state = listState,
@@ -507,7 +507,7 @@ private fun TypingIndicator() {
 // ── Empty state ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun EmptyState() {
+private fun EmptyState(onSendMessage: (String) -> Unit = {}) {
     Column(
         Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -529,7 +529,7 @@ private fun EmptyState() {
         Spacer(Modifier.height(20.dp))
         listOf("Tengo dolor 🦷", "Medicación 💊", "Mi tratamiento", "Todo bien ✅").forEach { chip ->
             OutlinedButton(
-                onClick = {},
+                onClick = { onSendMessage(chip) },
                 shape = RoundedCornerShape(50.dp),
                 border = BorderStroke(1.5.dp, TealPrimary),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = TealPrimary),
