@@ -140,6 +140,9 @@ interface ApiService {
     @GET("api/expediente")
     suspend fun getDentalRecords(): Response<DentalRecordsResponse>
 
+    @GET("api/expediente/paciente/{patientId}")
+    suspend fun getDentalRecordsByPatient(@Path("patientId") patientId: String): Response<DentalRecordsResponse>
+
     // ── AI Photo Analysis ─────────────────────────────────────────────────────
     @POST("api/ai/analyze-photo")
     suspend fun analyzePhoto(@Body request: AnalyzePhotoRequest): Response<AnalyzePhotoResponse>
@@ -196,4 +199,15 @@ interface ApiService {
     // ── Onboarding conversacional ─────────────────────────────────────────────
     @PATCH("api/users/onboarding")
     suspend fun saveOnboarding(@Body request: OnboardingRequest): Response<MessageResponse>
+
+    // ── Feature flags ─────────────────────────────────────────────────────────
+    @GET("api/config/features")
+    suspend fun getFeatureFlags(): Response<FeatureFlagsResponse>
+
+    @GET("api/config/features/me")
+    suspend fun getMyFeatureFlags(): Response<FeatureFlagsResponse>
+
+    // ── Analytics ────────────────────────────────────────────────────────────
+    @POST("api/analytics/event")
+    suspend fun trackEvent(@Body event: AnalyticsEvent): Response<MessageResponse>
 }

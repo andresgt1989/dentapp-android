@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.dentapp.app.data.model.*
 import com.dentapp.app.data.repository.AiRepository
 import com.dentapp.app.data.repository.Result
+import com.dentapp.app.utils.Analytics
 import kotlinx.coroutines.delay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -25,6 +26,7 @@ data class AiUiState(
 @HiltViewModel
 class AiManagerViewModel @Inject constructor(
     private val repo: AiRepository,
+    private val analytics: Analytics,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AiUiState())
@@ -34,6 +36,7 @@ class AiManagerViewModel @Inject constructor(
         loadHistory()
         loadContext()
         loadPendingAlerts()
+        analytics.aiSessionStarted()
     }
 
     private fun loadHistory() {
@@ -88,8 +91,9 @@ class AiManagerViewModel @Inject constructor(
         }
     }
 
-    fun sendMessage(text: String) {
+    fun sendMessage(text: String, isChip: Boolean = false) {
         if (text.isBlank() || _state.value.isSending) return
+        analytics.aiMessageSent(isChip)
 
         val userMsg = AiMessage(role = "user", content = text)
         _state.update { it.copy(

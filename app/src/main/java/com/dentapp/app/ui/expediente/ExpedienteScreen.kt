@@ -44,10 +44,15 @@ private fun procedimientoColor(procedimiento: String): Color {
 @Composable
 fun ExpedienteScreen(
     onBack: () -> Unit,
+    patientId: String? = null,
     viewModel: ExpedienteViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(patientId) {
+        if (patientId != null) viewModel.loadRecords(patientId)
+    }
 
     LaunchedEffect(state.error) {
         state.error?.let {

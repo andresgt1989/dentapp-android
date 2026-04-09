@@ -48,7 +48,11 @@ object Routes {
     const val HOME_DOCTOR         = "home_doctor"
     const val AI_MANAGER          = "ai_manager"
     const val BOOKING             = "booking/{doctorId}/{doctorName}"
-    const val EXPEDIENTE          = "expediente"
+    const val EXPEDIENTE          = "expediente?patientId={patientId}"
+    const val EXPEDIENTE_BASE     = "expediente"
+
+    fun expediente(patientId: String? = null) =
+        if (patientId != null) "expediente?patientId=$patientId" else "expediente"
     // ── Perfil del paciente ────────────────────────────────────────────────────
     const val HISTORIAL_MEDICO    = "historial_medico"
     const val MIS_DATOS           = "mis_datos"
@@ -142,7 +146,7 @@ fun DentAppNavGraph(
                     navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
                 },
                 onOpenAiManager       = { navController.navigate(Routes.AI_MANAGER) },
-                onOpenExpediente      = { navController.navigate(Routes.EXPEDIENTE) },
+                onOpenExpediente      = { navController.navigate(Routes.expediente()) },
                 onOpenBooking         = { id, name -> navController.navigate(Routes.booking(id, name)) },
                 onOpenHistorialMedico = { navController.navigate(Routes.HISTORIAL_MEDICO) },
                 onOpenMisDatos        = { navController.navigate(Routes.MIS_DATOS) },
@@ -160,8 +164,17 @@ fun DentAppNavGraph(
             AiManagerScreen(onBack = { navController.popBackStack() })
         }
 
-        composable(Routes.EXPEDIENTE) {
-            ExpedienteScreen(onBack = { navController.popBackStack() })
+        composable(
+            Routes.EXPEDIENTE,
+            arguments = listOf(navArgument("patientId") {
+                type = NavType.StringType; nullable = true; defaultValue = null
+            }),
+        ) { backStack ->
+            val patientId = backStack.arguments?.getString("patientId")
+            ExpedienteScreen(
+                onBack = { navController.popBackStack() },
+                patientId = patientId,
+            )
         }
 
         // ── Perfil del paciente ────────────────────────────────────────────────
@@ -248,8 +261,8 @@ fun DentAppNavGraph(
                     runBlocking { tokenStore.clear() }
                     navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
                 },
-                onVerExpedientePaciente = { _ ->
-                    navController.navigate(Routes.EXPEDIENTE)
+                onVerExpedientePaciente = { patientId ->
+                    navController.navigate(Routes.expediente(patientId))
                 },
             )
         }

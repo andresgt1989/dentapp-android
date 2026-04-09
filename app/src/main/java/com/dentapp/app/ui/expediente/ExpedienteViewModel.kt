@@ -13,6 +13,7 @@ data class ExpedienteUiState(
     val records: List<DentalRecordDto> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
+    val patientName: String = "",
 )
 
 @HiltViewModel
@@ -27,11 +28,15 @@ class ExpedienteViewModel @Inject constructor(
         loadRecords()
     }
 
-    fun loadRecords() {
+    fun loadRecords(patientId: String? = null) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
             try {
-                val r = api.getDentalRecords()
+                val r = if (patientId != null) {
+                    api.getDentalRecordsByPatient(patientId)
+                } else {
+                    api.getDentalRecords()
+                }
                 if (r.isSuccessful) {
                     _state.update {
                         it.copy(

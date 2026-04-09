@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.dentapp.app.data.model.RegisterRequest
 import com.dentapp.app.data.repository.AuthRepository
 import com.dentapp.app.data.repository.Result
+import com.dentapp.app.utils.Analytics
+import com.dentapp.app.utils.FeatureFlagManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +23,8 @@ data class AuthUiState(
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val repo: AuthRepository,
+    private val featureFlags: FeatureFlagManager,
+    private val analytics: Analytics,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthUiState())
@@ -31,7 +35,10 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = AuthUiState(isLoading = true)
             when (val r = repo.login(email.trim(), password.trim())) {
-                is Result.Success -> _state.value = AuthUiState(success = true, role = r.data.user.role)
+                is Result.Success -> {
+                    onLoginSuccess()
+                    _state.value = AuthUiState(success = true, role = r.data.user.role)
+                }
                 is Result.Error   -> _state.value = AuthUiState(error = r.message)
             }
         }
@@ -41,7 +48,10 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = AuthUiState(isLoading = true)
             when (val r = repo.googleAuth(idToken)) {
-                is Result.Success -> _state.value = AuthUiState(success = true, role = r.data.user.role)
+                is Result.Success -> {
+                    onLoginSuccess()
+                    _state.value = AuthUiState(success = true, role = r.data.user.role)
+                }
                 is Result.Error   -> _state.value = AuthUiState(error = r.message)
             }
         }
@@ -81,6 +91,12 @@ class AuthViewModel @Inject constructor(
                 is Result.Error   -> _state.value = AuthUiState(error = r.message)
             }
         }
+    }
+
+    private fun onLoginSuccess() {
+        analytics.setAuthenticated(true)
+        analytics.track("app_open")
+        featureFlags.fetchForUser()
     }
 
     fun setError(msg: String) { _state.value = AuthUiState(error = msg) }

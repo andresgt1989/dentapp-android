@@ -274,7 +274,7 @@ fun AiManagerScreen(
                     CircularProgressIndicator(color = TealPrimary)
                 }
             } else if (state.messages.isEmpty()) {
-                EmptyState(onSendMessage = { viewModel.sendMessage(it) })
+                EmptyState(onSendMessage = { viewModel.sendMessage(it, isChip = true) })
             } else {
                 LazyColumn(
                     state = listState,
